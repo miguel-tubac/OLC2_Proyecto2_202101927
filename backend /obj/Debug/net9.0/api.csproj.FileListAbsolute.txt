@@ -1,0 +1,97 @@
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/bin/Debug/net9.0/appsettings.Development.json
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/bin/Debug/net9.0/appsettings.json
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/bin/Debug/net9.0/api.staticwebassets.endpoints.json
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/bin/Debug/net9.0/api
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/bin/Debug/net9.0/api.deps.json
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/bin/Debug/net9.0/api.runtimeconfig.json
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/bin/Debug/net9.0/api.dll
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/bin/Debug/net9.0/api.pdb
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/bin/Debug/net9.0/Microsoft.AspNetCore.OpenApi.dll
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/bin/Debug/net9.0/Microsoft.OpenApi.dll
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/api.csproj.AssemblyReference.cache
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/api.GeneratedMSBuildEditorConfig.editorconfig
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/api.AssemblyInfoInputs.cache
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/api.AssemblyInfo.cs
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/api.csproj.CoreCompileInputs.cache
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/api.MvcApplicationPartsAssemblyInfo.cs
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/api.MvcApplicationPartsAssemblyInfo.cache
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/scopedcss/bundle/api.styles.css
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/staticwebassets.build.json
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/staticwebassets.development.json
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/staticwebassets.build.endpoints.json
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/staticwebassets/msbuild.api.Microsoft.AspNetCore.StaticWebAssets.props
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/staticwebassets/msbuild.api.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/staticwebassets/msbuild.build.api.props
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/staticwebassets/msbuild.buildMultiTargeting.api.props
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/staticwebassets/msbuild.buildTransitive.api.props
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/staticwebassets.pack.json
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/api.csproj.Up2Date
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/api.dll
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/refint/api.dll
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/api.pdb
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/api.genruntimeconfig.cache
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/obj/Debug/net9.0/ref/api.dll
+/home/miguel/Descargas/Compi2/Laboratorio/PruebaAntlr/api/bin/Debug/net9.0/Antlr4.Runtime.Standard.dll
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/api.csproj.AssemblyReference.cache
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/api.GeneratedMSBuildEditorConfig.editorconfig
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/api.AssemblyInfoInputs.cache
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/api.AssemblyInfo.cs
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/api.csproj.CoreCompileInputs.cache
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/api.MvcApplicationPartsAssemblyInfo.cs
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/api.MvcApplicationPartsAssemblyInfo.cache
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/api.dll
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/refint/api.dll
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/api.pdb
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /bin/Debug/net9.0/appsettings.Development.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /bin/Debug/net9.0/appsettings.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /bin/Debug/net9.0/api.staticwebassets.endpoints.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /bin/Debug/net9.0/api
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /bin/Debug/net9.0/api.deps.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /bin/Debug/net9.0/api.runtimeconfig.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /bin/Debug/net9.0/api.dll
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /bin/Debug/net9.0/api.pdb
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/api.sourcelink.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/scopedcss/bundle/api.styles.css
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/staticwebassets.build.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/staticwebassets.development.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/staticwebassets.build.endpoints.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/staticwebassets/msbuild.api.Microsoft.AspNetCore.StaticWebAssets.props
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/staticwebassets/msbuild.api.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/staticwebassets/msbuild.build.api.props
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/staticwebassets/msbuild.buildMultiTargeting.api.props
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/staticwebassets/msbuild.buildTransitive.api.props
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/staticwebassets.pack.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/api.csproj.Up2Date
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/api.genruntimeconfig.cache
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /obj/Debug/net9.0/ref/api.dll
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /bin/Debug/net9.0/appsettings.Development.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /bin/Debug/net9.0/appsettings.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /bin/Debug/net9.0/api.staticwebassets.endpoints.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /bin/Debug/net9.0/api
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /bin/Debug/net9.0/api.deps.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /bin/Debug/net9.0/api.runtimeconfig.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /bin/Debug/net9.0/api.dll
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /bin/Debug/net9.0/api.pdb
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/api.csproj.AssemblyReference.cache
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/api.GeneratedMSBuildEditorConfig.editorconfig
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/api.AssemblyInfoInputs.cache
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/api.AssemblyInfo.cs
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/api.csproj.CoreCompileInputs.cache
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/api.MvcApplicationPartsAssemblyInfo.cs
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/api.MvcApplicationPartsAssemblyInfo.cache
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/scopedcss/bundle/api.styles.css
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/staticwebassets.build.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/staticwebassets.development.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/staticwebassets.build.endpoints.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/staticwebassets/msbuild.api.Microsoft.AspNetCore.StaticWebAssets.props
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/staticwebassets/msbuild.api.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/staticwebassets/msbuild.build.api.props
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/staticwebassets/msbuild.buildMultiTargeting.api.props
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/staticwebassets/msbuild.buildTransitive.api.props
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/staticwebassets.pack.json
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/api.csproj.Up2Date
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/api.dll
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/refint/api.dll
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/api.pdb
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/api.genruntimeconfig.cache
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/ref/api.dll

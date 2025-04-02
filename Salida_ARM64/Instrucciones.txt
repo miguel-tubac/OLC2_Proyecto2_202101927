@@ -1,0 +1,17 @@
+1.--------Compilar el código ensamblador ARM64: usa el ensamblador aarch64-linux-gnu-as para ensamblar tu código en ARM64
+aarch64-linux-gnu-as -o pruebas.o pruebas.s
+
+
+2.--------Enlazar el archivo objeto:
+aarch64-linux-gnu-ld -o pruebas pruebas.o
+
+
+3.--------Ejecutar el programa con QEMU:
+qemu-aarch64 ./pruebas
+./pruebas
+
+
+**********************Union de los comandos****************************
+aarch64-linux-gnu-as -o pruebas.o pruebas.s
+aarch64-linux-gnu-ld -o pruebas pruebas.o
+./pruebas
