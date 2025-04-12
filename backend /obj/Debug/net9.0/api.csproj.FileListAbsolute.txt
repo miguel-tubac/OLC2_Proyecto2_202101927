@@ -95,3 +95,4 @@
 /home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/api.pdb
 /home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/api.genruntimeconfig.cache
 /home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/ref/api.dll
+/home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /obj/Debug/net9.0/api.sourcelink.json

@@ -30,6 +30,22 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     // VisitBloqueSente
     public override Object VisitBloqueSente(LanguageParser.BloqueSenteContext context)
     {
+        c.Comment("Bloque de nuevo entorno");
+        c.NewScope();
+        foreach (var dcl in context.declaraciones())
+        {
+            Visit(dcl);
+        }
+
+        //Luego de salir del entorno se debe de limpiar la pila
+        int bytesToRemove = c.endScope();
+
+        if (bytesToRemove > 0){
+            c.Comment($"Removeindo {bytesToRemove} bytes del stack");
+            c.Mov(Register.X0, bytesToRemove);
+            c.Add(Register.SP, Register.SP, Register.X0);
+        }
+
         return null;
     }
 
@@ -37,6 +53,14 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     //Esta corresponde a la produccion: 'var' ID tipos ('=' expr)? ';' # PrimeraDecl 
     public override Object VisitPrimeraDecl(LanguageParser.PrimeraDeclContext context)
     {
+        var varname = context.ID().GetText();
+        c.Comment("Variable declaracion: "+varname);
+
+        //Aca se valida que el valor este en la pila
+        Visit(context.expr());
+        //Aca se asocia el valor al nombre en el stack virtual
+        c.TagObject(varname);
+
         return null;
     }
 
@@ -54,6 +78,10 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     //  VisitExpreStmt
     public override Object  VisitExpreStmt(LanguageParser.ExpreStmtContext context)
     {
+        //Aca unicamente se deve de dejar la pila basillas
+        Visit(context.expr());
+        c.Comment("Popping descartando el valor");
+        c.PopObject(Register.X0);
         return null;
     }
 
@@ -64,9 +92,19 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         foreach(var val in context.expr())
         {
             Visit(val);
-            c.Pop(Register.X0);
+            var value = c.PopObject(Register.X0);
             //Llamamos a la funcion de imprimir
-            c.PrintInteger(Register.X0);
+            switch (value.Type){
+                case StackObject.StackObjectType.Int:
+                    c.PrintInteger(Register.X0);
+                    break;
+                case StackObject.StackObjectType.Float:
+                    break;
+                case StackObject.StackObjectType.String:
+                    c.PrintString(Register.X0);
+                    break;
+            }
+            
         }
         return null;
     }
@@ -75,6 +113,24 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     //VisitIdentifaider    ID                                        # Identifaider
     public override Object VisitIdentifaider(LanguageParser.IdentifaiderContext context)
     {
+        var id = context.ID().GetText();
+
+        //Ahora calcular cuanto me tengo que mover relativo a la variable en el stack
+        var (offset, obj) = c.GetObject(id);
+
+        //Aca se obtiene la direccion
+        c.Mov(Register.X0, offset);
+        c.Add(Register.X0, Register.SP, Register.X0);
+
+        //Aca se consigue hace una copia del valor
+        c.Ldr(Register.X0, Register.X0);
+        c.Push(Register.X0);
+
+        //Aca se carga a la pila virtual y no necesitamos el valor del id
+        var newObject = c.CloneObject(obj);
+        newObject.Id = null;
+        c.PushObject(newObject);
+
         return null;
     }
 
@@ -100,8 +156,13 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         Visit(context.expr(1)); //Visit 2: TOP --> [2, 1]
 
         //Se obtinen los valores de la pila
-        c.Pop(Register.X1); //Pop 2: TOP --> [1]
-        c.Pop(Register.X0); //Pop 1: TOP --> []
+        var right = c.PopObject(Register.X1);
+        var left = c.PopObject(Register.X0);
+
+        //TODO: aca se manejan los tipos
+        switch (right.Type, operation, left.Type){
+
+        }
 
         if (operation == "+"){
             c.Add(Register.X0, Register.X0, Register.X1);
@@ -111,7 +172,12 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         }
 
         //Ahora se vuelve a cargar al stack
+        c.Comment("Peshing resultados");
+        //Esto es a nievel de arm
         c.Push(Register.X0);
+        //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+        //En este caso se clona el left
+        c.PushObject(c.CloneObject(left));
         return null;
     }
 
@@ -121,8 +187,12 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     {
         var value = context.INT().GetText();
         c.Comment("Constante: "+value);
-        c.Mov(Register.X0, int.Parse(value));
-        c.Push(Register.X0);
+        
+        //Aca se genera un valor por defecto
+        var intObject = c.IntObject();
+        //Aca se pushe a la pila virtual y tambien a la de arm
+        c.PushConstant(intObject, int.Parse(value));
+
         return null;
     }
     
@@ -135,6 +205,16 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     // VisitString
     public override Object VisitString(LanguageParser.StringContext context)
     {
+
+        string rawText = context.STRING().GetText();
+        string processedText = SecuanciasEscape.UnescapeString(rawText);//Procesa las secuancias de escape
+        
+        c.Comment("String constante: "+processedText);
+        //Se generar un objeto de tipo string
+        var stringObject = c.StringObject();
+        //Se asocia el obejto con el strong
+        c.PushConstant(stringObject, processedText);
+
         return null;
     }
 
@@ -166,6 +246,35 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     // VisitAssign     expr '=' expr 
     public override Object VisitAssign(LanguageParser.AssignContext context)
     {
+        var assigne = context.expr(0);
+
+        if(assigne is LanguageParser.IdentifaiderContext idContext)
+        {
+            string varName = idContext.ID().GetText();
+            c.Comment("Assignacion a la variable: "+varName);
+            //Esto dejo el valor en el stack
+            Visit(context.expr(1));
+
+            //Esto obtiene la copia del objeto}
+            var valueObject = c.PopObject(Register.X0);
+            //Aca obtenemos de cuanto debemos realizar el ofsset para encontrar el valor
+            var (offset, varObject) = c.GetObject(varName);
+
+            //Aca caegamo en el x1 el offset
+            c.Mov(Register.X1, offset);
+            //Ahora retrocedo en el stack pionter
+            c.Add(Register.X1, Register.SP, Register.X1);
+
+            //Por ultimo se vuelve a guardar el valor en la pila
+            c.Str(Register.X0, Register.X1);
+
+            //Esto es solo para resignar el tipo
+            varObject.Type = valueObject.Type;
+
+            //Aca se carga el valor en las dos pilas
+            c.Push(Register.X0);
+            c.PushObject(c.CloneObject(varObject));
+        }
         return null;
     }
 

@@ -1,9 +1,170 @@
 using System.Text;
 
+//Este va ha ser el estack vitual para poder manejar tipos 
+public class StackObject
+{
+    public enum StackObjectType {Int, Float, String}
+    public StackObjectType Type {get; set;}
+    public int Length {get; set;}
+    //Este es el numeor del entorno
+    public int Depth {get; set;}
+    public string? Id {get; set;}
+}
+
 public class ArmGenerator
 {
     private readonly List<string> instrucciones = new List<string>();
     private readonly StandardLibrary stdLib = new StandardLibrary();
+    private List<StackObject> stack = new List<StackObject>();
+    private int depth = 0;
+
+    /* ----- stack operaciones ----*/
+    public void PushObject(StackObject obj)
+    {
+        stack.Add(obj);
+    }
+
+    //Esto es para cargar un valor a las dos pilas
+    public void PushConstant(StackObject obj, object value)
+    {   
+        //Esto es el mundo de arm
+        switch (obj.Type)
+        {
+            case StackObject.StackObjectType.Int:
+                Mov(Register.X0, (int)value);
+                Push(Register.X0);
+                break;
+            case StackObject.StackObjectType.Float:
+            //TODO: pendiente de implementar
+                break;
+            case StackObject.StackObjectType.String:
+                List<byte> stringArray = Utils.StringTo1ByteArray((string)value);
+                //Mantenemos la referencia al stack
+                Push(Register.HP);
+                //Se cargan los valores
+                for (int i = 0; i < stringArray.Count; i++){
+                    var charCode = stringArray[i];
+                    Comment($"Pushing char {charCode} to heap - ({(char) charCode})");
+                    //Esto nos permite utilizar el strore bayte solo con los de w
+                    Mov("w0", charCode);
+                    Strb("w0", Register.HP);
+                    //Aca se van metiendo caracter por caracter
+                    Mov(Register.X0, 1);
+                    Add(Register.HP, Register.HP, Register.X0);
+                }
+                break;
+        }
+
+        //Este es el mundo de mi stack viertual
+        PushObject(obj);
+    }
+
+    public StackObject PopObject(string rd)
+    {
+        var obj = stack.Last();
+        stack.RemoveAt(stack.Count -1);
+
+        //Remueve del reguistro destino
+        Pop(rd);
+        //Retorno el objeto por si se desea usar
+        return obj;
+    }
+
+    //Estos metodos me retonran datos de cierto tipo
+    public StackObject IntObject()
+    {
+        return new StackObject
+        {
+            Type = StackObject.StackObjectType.Int,
+            Length = 8,//estos son 8 bytes
+            Depth = depth,
+            Id = null
+        };
+    }
+
+    public StackObject FloatObject()
+    {
+        return new StackObject
+        {
+            Type = StackObject.StackObjectType.Float,
+            Length = 8,
+            Depth = depth,
+            Id = null
+        };
+    }
+
+    public StackObject StringObject()
+    {
+        return new StackObject
+        {
+            Type = StackObject.StackObjectType.String,
+            Length = 8,
+            Depth = depth,
+            Id = null
+        };
+    }
+
+    //Esto me permite clonar un objeto
+    public StackObject CloneObject(StackObject obj)
+    {
+        return new StackObject
+        {
+            Type = obj.Type,
+            Length = obj.Length,
+            Depth = obj.Depth,
+            Id = obj.Id
+        }; 
+    }
+
+    //Esto es para generar un nuevo entorno
+    public void NewScope()
+    {
+        depth++;
+    }
+
+    //Este es para finalizar un entorno
+    public int endScope()
+    {
+        int byteOffset = 0;
+        for(int i = stack.Count-1; i>= 0; i--)
+        {
+            if (stack[i].Depth == depth){
+                byteOffset += stack[i].Length;
+                stack.RemoveAt(i);
+            }else{
+                break;
+            }
+        }
+        //Decrementa en una unidad el valor de los entornos
+        depth--;
+        //Retona el valor del entorno
+        return byteOffset;
+    }
+
+    //Esto es para guardar una variable
+    public void TagObject(string id)
+    {
+        stack.Last().Id = id;
+    }
+
+    //Esto devuelve la posicion de una variabel en la pila
+    public (int, StackObject) GetObject(string id)
+    {
+        int byteOffset = 0;
+        for(int i=stack.Count -1; i>= 0; i--)
+        {
+            if(stack[i].Id == id)
+            {
+                return (byteOffset, stack[i]);
+            }
+            //moverme mas adentro de la pila
+            byteOffset += stack[i].Length;
+        }
+
+        throw new Exception($"Object {id} no encontrada en el stack");
+    }
+
+    /* --------------------- */
 
     //Esta es la instruccion de la suma
     public void Add(string rd, string rs1, string rs2)
@@ -30,6 +191,12 @@ public class ArmGenerator
     public void Addi(string rd, string rs1, int imm)
     {
         instrucciones.Add($"ADDI {rd}, {rs1}, #{imm}");
+    }
+
+    //Para cargar byte por byte
+    public void Strb(string rs1, string rs2)
+    {
+        instrucciones.Add($"STRB {rs1}, [{rs2}]");
     }
 
     //Operaciones de memoria
@@ -78,6 +245,13 @@ public class ArmGenerator
         instrucciones.Add($"BL print_integer");
     }
 
+    public void PrintString(string rs)
+    {
+        stdLib.Use("print_string");
+        instrucciones.Add($"MOV X0, {rs}");
+        instrucciones.Add($"BL print_string");
+    }
+
     //Agregar comentarios
     public void Comment(string comment)
     {
@@ -89,9 +263,12 @@ public class ArmGenerator
     {
         //Se agregan las directivas
         var sb = new StringBuilder();
+        sb.AppendLine(".data");
+        sb.AppendLine("heap: .space 4096");//se reserva un espacion para aspectos variables Bytes
         sb.AppendLine(".text");
         sb.AppendLine(".global _start");
         sb.AppendLine("_start:");
+        sb.AppendLine("     adr X10, heap");
 
         //Se agrega el final del programa
         EndProgram();
