@@ -11,7 +11,6 @@ public static class Utils
             resultado.Add((byte)str[elementIndex]);
             elementIndex++;
         }
-
         resultado.Add(0);//Agrega el caracter null de terminacion de la cadena
 
         return resultado;

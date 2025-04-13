@@ -168,6 +168,13 @@ print_loop:
     b       print_loop
     
 print_done:
+    // Print newline character
+    ldr     x1, =newline        // Address of newline character
+    mov     x0, #1              // File descriptor: stdout
+    mov     x2, #1              // Length of 1 byte
+    mov     x8, #64             // syscall: write
+    svc     #0
+
     // Restore saved registers
     ldp     x19, x20, [sp], #16
     ldp     x29, x30, [sp], #16

@@ -265,6 +265,7 @@ public class ArmGenerator
         var sb = new StringBuilder();
         sb.AppendLine(".data");
         sb.AppendLine("heap: .space 4096");//se reserva un espacion para aspectos variables Bytes
+        sb.AppendLine("newline: .ascii \"\\n\"");//Esto es para ageregar un salto de linea luego de imprimir texto
         sb.AppendLine(".text");
         sb.AppendLine(".global _start");
         sb.AppendLine("_start:");
