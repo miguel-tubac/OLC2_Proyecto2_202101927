@@ -179,7 +179,232 @@ print_done:
     ldp     x19, x20, [sp], #16
     ldp     x29, x30, [sp], #16
     ret
-    " }
+    " },
+
+    {"string_to_double", @"
+// Función que convierte cadena (en x1) a double (en d0)
+string_to_double:
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    
+    // Cargar zero a d0
+    adrp x8, zero
+    add x8, x8, :lo12:zero
+    ldr d0, [x8]
+    
+    // Cargar one a d2
+    adrp x8, one
+    add x8, x8, :lo12:one
+    ldr d2, [x8]
+    
+    mov w2, #0                  // Modo decimal
+    mov w4, #0                  // Signo
+    
+    // Verificar signo negativo
+    ldrb w3, [x1]
+    cmp w3, #'-'
+    bne loop_convert
+    mov w4, #1
+    add x1, x1, #1
+
+loop_convert:
+    ldrb w3, [x1], #1
+    cmp w3, #0
+    beq end_convert
+    
+    cmp w3, #'.'
+    bne not_decimal_point
+    mov w2, #1
+    b loop_convert
+
+not_decimal_point:
+    cmp w3, #'0'
+    blt loop_convert
+    cmp w3, #'9'
+    bgt loop_convert
+    
+    sub w3, w3, #'0'
+    scvtf d3, w3
+    
+    cmp w2, #0
+    beq process_integer
+    
+    // Parte decimal
+    adrp x8, ten
+    add x8, x8, :lo12:ten
+    ldr d4, [x8]
+    fmul d2, d2, d4
+    fdiv d3, d3, d2
+    fadd d0, d0, d3
+    b loop_convert
+
+process_integer:
+    adrp x8, ten
+    add x8, x8, :lo12:ten
+    ldr d4, [x8]
+    fmul d0, d0, d4
+    fadd d0, d0, d3
+    b loop_convert
+
+end_convert:
+    cmp w4, #1
+    bne done_convert
+    adrp x8, neg_one
+    add x8, x8, :lo12:neg_one
+    ldr d1, [x8]
+    fmul d0, d0, d1
+
+done_convert:
+    ldp x29, x30, [sp], #16
+    ret
+    "},
+
+    {"print_double", @"
+
+//La endrada debe de ingresar en el registro d0
+print_double:
+    stp x29, x30, [sp, #-80]!
+    mov x29, sp
+    
+    // Inicializar buffer
+    add x1, sp, #16
+    mov x20, x1
+    
+    // Manejar signo
+    adrp x8, zero
+    add x8, x8, :lo12:zero
+    ldr d1, [x8]
+    fcmp d0, d1
+    bge positive
+    mov w3, #'-'
+    strb w3, [x1], #1
+    adrp x8, neg_one
+    add x8, x8, :lo12:neg_one
+    ldr d1, [x8]
+    fmul d0, d0, d1
+    mov x19, #1
+    b after_sign
+
+positive:
+    mov x19, #0
+
+after_sign:
+    // Redondear
+    adrp x21, round_const
+    add x21, x21, :lo12:round_const
+    ldr d3, [x21]
+    fadd d0, d0, d3
+    
+    // Separar parte entera y decimal
+    frintz d1, d0
+    fsub d2, d0, d1
+    
+    // Convertir parte entera
+    mov x4, x1
+
+convert_int_loop:
+    adrp x22, ten
+    add x22, x22, :lo12:ten
+    ldr d4, [x22]
+    
+    fdiv d5, d1, d4
+    frintz d5, d5
+    fmul d6, d5, d4
+    fsub d6, d1, d6
+    fcvtzs w5, d6
+    
+    add w5, w5, #'0'
+    strb w5, [x1], #1
+    
+    fmov d1, d5
+    adrp x8, zero
+    add x8, x8, :lo12:zero
+    ldr d8, [x8]
+    fcmp d1, d8
+    bne convert_int_loop
+    
+    // Invertir dígitos
+    mov x5, x4
+    sub x6, x1, #1
+
+reverse_int_loop:
+    cmp x5, x6
+    bge reverse_done
+    ldrb w7, [x5]
+    ldrb w8, [x6]
+    strb w8, [x5], #1
+    strb w7, [x6], #-1
+    b reverse_int_loop
+
+reverse_done:
+    // Añadir punto decimal
+    adrp x9, point
+    add x9, x9, :lo12:point
+    ldrb w9, [x9]
+    strb w9, [x1], #1
+    
+    // Convertir parte decimal
+    mov w10, #6
+
+convert_decimal_loop:
+    cbz w10, decimal_done
+    
+    adrp x22, ten
+    add x22, x22, :lo12:ten
+    ldr d4, [x22]
+    fmul d2, d2, d4
+    
+    frintz d5, d2
+    fcvtzs w11, d5
+    
+    cmp w10, #1
+    bne no_final_round
+    fsub d6, d2, d5
+    adrp x23, half
+    add x23, x23, :lo12:half
+    ldr d7, [x23]
+    fcmp d6, d7
+    blt no_final_round
+    add w11, w11, #1
+    
+no_final_round:
+    cmp w11, #10
+    blt store_decimal
+    mov w11, #9
+    
+store_decimal:
+    fsub d2, d2, d5
+    
+    add w11, w11, #'0'
+    strb w11, [x1], #1
+    
+    sub w10, w10, #1
+    b convert_decimal_loop
+
+decimal_done:
+    // Añadir salto de línea
+    adrp x12, newline
+    add x12, x12, :lo12:newline
+    ldrb w12, [x12]
+    strb w12, [x1], #1
+    
+    // Calcular longitud
+    sub x2, x1, x20
+    cmp x19, #1
+    bne print_output
+    sub x20, x20, #1
+    add x2, x2, #1
+    
+print_output:
+    // Escribir
+    mov x0, #1
+    mov x1, x20
+    mov x8, #64
+    svc #0
+    
+    ldp x29, x30, [sp], #80
+    ret
+    "}
 
     };
 

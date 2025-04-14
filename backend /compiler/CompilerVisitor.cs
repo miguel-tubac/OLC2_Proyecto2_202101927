@@ -72,6 +72,31 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
 
     public override Object VisitNegar([NotNull] LanguageParser.NegarContext context)
     {
+        c.Comment("Negacion de un valor");
+        //Aca se almacena el valor en el stack
+        Visit(context.expr());
+        //Se obtiene el valor del stack para compararlo
+        var valor = c.PopObject(Register.X0);
+
+        //Aca se manejan los tipos
+        switch (valor.Type){
+            case StackObject.StackObjectType.Int:
+                //Se niega el valor del reguistro x0
+                c.NegarInt(Register.X0);
+                //Se pushea a la pila de nuevo
+                //Ahora se vuelve a cargar al stack
+                c.Comment("Pushing resultados");
+                //Esto es a nievel de arm
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(valor));
+                break;
+            case StackObject.StackObjectType.Float:
+
+                break;
+        }
+
         return null;
     }
 
@@ -99,6 +124,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                     c.PrintInteger(Register.X0);
                     break;
                 case StackObject.StackObjectType.Float:
+                    c.PrintFloat("d0");
                     break;
                 case StackObject.StackObjectType.String:
                     c.PrintString(Register.X0);
@@ -172,7 +198,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         }
 
         //Ahora se vuelve a cargar al stack
-        c.Comment("Peshing resultados");
+        c.Comment("Pushing resultados");
         //Esto es a nievel de arm
         c.Push(Register.X0);
         //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
@@ -198,7 +224,16 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     
     // VisitFloat
     public override Object VisitFloat(LanguageParser.FloatContext context)
-    {   
+    { 
+        var value = context.FLOAT().GetText();
+        c.Comment("Flotante: "+value);
+
+        //Se obtiene un objeto por defecto de tipo Flotante
+        var floatObject = c.FloatObject();
+        c.PushConstant(floatObject, value);
+        //Esto convierte el valor a punto flotante
+        //c.PushConstant(floatObject, float.Parse(value, CultureInfo.InvariantCulture));
+        c.Comment("Final de la lectura del float");
         return null;
     }
 

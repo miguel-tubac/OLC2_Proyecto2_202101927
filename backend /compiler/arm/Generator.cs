@@ -35,15 +35,35 @@ public class ArmGenerator
                 Push(Register.X0);
                 break;
             case StackObject.StackObjectType.Float:
-            //TODO: pendiente de implementar
-                break;
-            case StackObject.StackObjectType.String:
+                //TODO: pendiente de implementar
                 List<byte> stringArray = Utils.StringTo1ByteArray((string)value);
                 //Mantenemos la referencia al stack
-                Push(Register.HP);
+                //Push(Register.HP);
                 //Se cargan los valores
                 for (int i = 0; i < stringArray.Count; i++){
                     var charCode = stringArray[i];
+                    Comment($"Pushing char {charCode} to heap - ({(char) charCode})");
+                    //Esto nos permite utilizar el strore bayte solo con los de w
+                    Mov("w0", charCode);
+                    Strb("w0", Register.HP);
+                    //Aca se van metiendo caracter por caracter
+                    Mov(Register.X0, 1);
+                    Add(Register.HP, Register.HP, Register.X0);
+                }
+                //Convertimos a float el string
+                Comment("Conversion de cadena a Float");
+                ConvertToFloat(Register.HP);
+                //Cargamos a la pila el valor numerico de doble
+                Push("d0");
+                Comment("Fin de conversion de cadena a Float");
+                break;
+            case StackObject.StackObjectType.String:
+                List<byte> stringArray2 = Utils.StringTo1ByteArray((string)value);
+                //Mantenemos la referencia al stack
+                Push(Register.HP);
+                //Se cargan los valores
+                for (int i = 0; i < stringArray2.Count; i++){
+                    var charCode = stringArray2[i];
                     Comment($"Pushing char {charCode} to heap - ({(char) charCode})");
                     //Esto nos permite utilizar el strore bayte solo con los de w
                     Mov("w0", charCode);
@@ -65,7 +85,11 @@ public class ArmGenerator
         stack.RemoveAt(stack.Count -1);
 
         //Remueve del reguistro destino
-        Pop(rd);
+        if(obj.Type == StackObject.StackObjectType.Float){
+            Pop("d0");
+        }else{
+            Pop(rd);
+        }
         //Retorno el objeto por si se desea usar
         return obj;
     }
@@ -245,6 +269,21 @@ public class ArmGenerator
         instrucciones.Add($"BL print_integer");
     }
 
+    public void PrintFloat(string rs)
+    {
+        stdLib.Use("print_double");
+        instrucciones.Add($"FMOV d0, {rs}");
+        instrucciones.Add($"BL print_double");
+    }
+
+    public void ConvertToFloat(string rs)
+    {
+        stdLib.Use("string_to_double");
+        instrucciones.Add("adrp x1, heap");
+        instrucciones.Add("add x1, x1, :lo12:heap");
+        instrucciones.Add("BL string_to_double");
+    }
+
     public void PrintString(string rs)
     {
         stdLib.Use("print_string");
@@ -258,6 +297,12 @@ public class ArmGenerator
         instrucciones.Add($"// {comment}");
     }
 
+    //Para negar valores enteros
+    public void NegarInt(string rd)
+    {
+        instrucciones.Add($"neg x0, {rd}");
+    }
+
     //Sobre escribimos la clase para convertir a string
     public override string ToString()
     {
@@ -266,17 +311,28 @@ public class ArmGenerator
         sb.AppendLine(".data");
         sb.AppendLine("heap: .space 4096");//se reserva un espacion para aspectos variables Bytes
         sb.AppendLine("newline: .ascii \"\\n\"");//Esto es para ageregar un salto de linea luego de imprimir texto
-        sb.AppendLine(".text");
+        sb.AppendLine("zero:           .double 0.0");
+        sb.AppendLine("one:            .double 1.0");
+        sb.AppendLine("ten:            .double 10.0");
+        sb.AppendLine("neg_one:        .double -1.0");
+        sb.AppendLine("//Esta es para imprimir dobles");
+        sb.AppendLine("point:      .byte '.'");
+        sb.AppendLine("round_const:    .double 0.0000005 ");
+        sb.AppendLine("half:           .double 0.5 ");
+        
+        sb.AppendLine("\n.text");
         sb.AppendLine(".global _start");
         sb.AppendLine("_start:");
-        sb.AppendLine("     adr X10, heap");
+        //sb.AppendLine("     adr x10, heap");
+        sb.AppendLine("\tadrp x10, heap");
+        sb.AppendLine("\tadd x10, x10, :lo12:heap");
 
         //Se agrega el final del programa
         EndProgram();
         //Se agregan las instrucciones de la lista
         foreach (var instruction in instrucciones)
         {
-            sb.AppendLine(instruction);
+            sb.AppendLine("\t"+instruction);
         }
 
         //Esto es para agregar la conversion de int a string

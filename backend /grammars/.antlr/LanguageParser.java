@@ -1,4 +1,4 @@
-// Generated from /home/miguel/Descargas/Compi2/Laboratorio/Proyecto1/backend /grammars/Language.g4 by ANTLR 4.13.1
+// Generated from /home/miguel/Descargas/Compi2/Laboratorio/Proyecto_2/backend /grammars/Language.g4 by ANTLR 4.13.1
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
