@@ -303,6 +303,12 @@ public class ArmGenerator
         instrucciones.Add($"neg x0, {rd}");
     }
 
+    //Para negar valores dobles
+    public void NegarFloat(string rd)
+    {
+        instrucciones.Add($"fneg d0, {rd}");
+    }
+
     //Sobre escribimos la clase para convertir a string
     public override string ToString()
     {

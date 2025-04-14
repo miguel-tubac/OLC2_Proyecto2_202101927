@@ -93,7 +93,16 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.PushObject(c.CloneObject(valor));
                 break;
             case StackObject.StackObjectType.Float:
-
+                //Se niega el valor del reguistro x0
+                c.NegarFloat("d0");
+                //Se pushea a la pila de nuevo
+                //Ahora se vuelve a cargar al stack
+                c.Comment("Pushing resultados");
+                //Esto es a nievel de arm
+                c.Push("d0");
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(valor));
                 break;
         }
 
