@@ -404,6 +404,47 @@ print_output:
     
     ldp x29, x30, [sp], #80
     ret
+    "},
+
+
+    {"print_bool", @"
+
+print_bool:
+    // Save registers
+    stp x29, x30, [sp, #-16]!
+    stp x19, x20, [sp, #-16]!
+    stp x21, x22, [sp, #-16]!
+    stp x23, x24, [sp, #-16]!
+    stp x25, x26, [sp, #-16]!
+    stp x27, x28, [sp, #-16]!
+
+    cmp x0, #1
+    beq print_true
+
+print_false:
+    ldr x0, =msg_false
+    mov x1, x0         
+    mov x2, #6         
+    b print_msg_common
+
+print_true:
+    ldr x0, =msg_true
+    mov x1, x0         
+    mov x2, #5         
+
+print_msg_common:
+    mov x0, #1         
+    mov x8, #64        
+    svc #0
+
+    // Restore registers
+    ldp x27, x28, [sp], #16
+    ldp x25, x26, [sp], #16
+    ldp x23, x24, [sp], #16
+    ldp x21, x22, [sp], #16
+    ldp x19, x20, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
     "}
 
     };

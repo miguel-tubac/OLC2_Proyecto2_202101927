@@ -138,6 +138,9 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 case StackObject.StackObjectType.String:
                     c.PrintString(Register.X0);
                     break;
+                case StackObject.StackObjectType.Bool:
+                    c.PrintBool(Register.X0);
+                    break;
             }
             
         }
@@ -265,6 +268,19 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     // VisitBoolean
     public override Object VisitBoolean(LanguageParser.BooleanContext context)
     {
+        string valor = context.booll().GetText();
+        if (valor.Equals("true"))
+        {
+            c.Comment("Cargando valor bool: "+valor);
+            var boolObject = c.BoolObject();
+            c.PushConstant(boolObject, 1);
+        }
+        else if(valor.Equals("false"))
+        {
+            c.Comment("Cargando valor bool: "+valor);
+            var boolObject = c.BoolObject();
+            c.PushConstant(boolObject, 0);
+        }
         return null;
     }
 

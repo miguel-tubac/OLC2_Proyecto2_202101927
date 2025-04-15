@@ -3,7 +3,7 @@ using System.Text;
 //Este va ha ser el estack vitual para poder manejar tipos 
 public class StackObject
 {
-    public enum StackObjectType {Int, Float, String}
+    public enum StackObjectType {Int, Float, String, Bool, Rune}
     public StackObjectType Type {get; set;}
     public int Length {get; set;}
     //Este es el numeor del entorno
@@ -31,6 +31,12 @@ public class ArmGenerator
         switch (obj.Type)
         {
             case StackObject.StackObjectType.Int:
+                Mov(Register.X0, (int)value);
+                Push(Register.X0);
+                break;
+            case StackObject.StackObjectType.Bool:
+                //Se carga el valor ya sea 1 ó 0
+                //1 = true , 0 = false
                 Mov(Register.X0, (int)value);
                 Push(Register.X0);
                 break;
@@ -127,6 +133,30 @@ public class ArmGenerator
             Id = null
         };
     }
+
+    //Esto es para los valores por defecto de tipo Bool
+    public StackObject BoolObject()
+    {
+        return new StackObject
+        {
+            Type = StackObject.StackObjectType.Bool,
+            Length = 8,
+            Depth = depth,
+            Id = null
+        };
+    }
+
+    public StackObject RuneObject()
+    {
+        return new StackObject
+        {
+            Type = StackObject.StackObjectType.Rune,
+            Length = 8,
+            Depth = depth,
+            Id = null
+        };
+    }
+
 
     //Esto me permite clonar un objeto
     public StackObject CloneObject(StackObject obj)
@@ -265,8 +295,17 @@ public class ArmGenerator
     public void PrintInteger(string rs)
     {
         stdLib.Use("print_integer");
-        instrucciones.Add($"MOV X0, {rs}");
+        instrucciones.Add($"MOV x0, {rs}");
         instrucciones.Add($"BL print_integer");
+    }
+
+    //Esto es para imprimir tipos Bool
+    public void PrintBool(string rs)
+    {
+        //Cargamos el valor numerico
+        stdLib.Use("print_bool");
+        instrucciones.Add($"MOV x0, {rs}");
+        instrucciones.Add($"BL print_bool");
     }
 
     public void PrintFloat(string rs)
@@ -287,7 +326,7 @@ public class ArmGenerator
     public void PrintString(string rs)
     {
         stdLib.Use("print_string");
-        instrucciones.Add($"MOV X0, {rs}");
+        instrucciones.Add($"MOV x0, {rs}");
         instrucciones.Add($"BL print_string");
     }
 
@@ -325,6 +364,9 @@ public class ArmGenerator
         sb.AppendLine("point:      .byte '.'");
         sb.AppendLine("round_const:    .double 0.0000005 ");
         sb.AppendLine("half:           .double 0.5 ");
+        sb.AppendLine("//Esta es para imprimir Bool");
+        sb.AppendLine("msg_true:   .asciz \"true\\n\"");
+        sb.AppendLine("msg_false:  .asciz \"false\\n\"");
         
         sb.AppendLine("\n.text");
         sb.AppendLine(".global _start");
