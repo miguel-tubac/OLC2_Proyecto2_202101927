@@ -445,6 +445,47 @@ print_msg_common:
     ldp x19, x20, [sp], #16
     ldp x29, x30, [sp], #16
     ret
+    "},
+
+    {"print_char",@"
+// ------------------------
+// FUNCION PARA IMPRIMIR UN SOLO CARÁCTER
+// El valor del caracter viene en el reguistro X0
+print_char:
+    // Save registers
+    stp x29, x30, [sp, #-16]!
+    stp x19, x20, [sp, #-16]!
+    stp x21, x22, [sp, #-16]!
+    stp x23, x24, [sp, #-16]!
+    stp x25, x26, [sp, #-16]!
+    stp x27, x28, [sp, #-16]!
+
+    sub sp, sp, #16       // Reservar espacio en el stack
+    strb w0, [sp]         // Guardar el carácter (1 byte)
+    
+    mov x1, sp            // Dirección del carácter
+    mov x2, #1            // Longitud = 1 byte
+    mov x0, #1            // stdout
+    mov x8, #64           // syscall write
+    svc #0
+
+    // Print newline character
+    ldr     x1, =newline        // Address of newline character
+    mov     x0, #1              // File descriptor: stdout
+    mov     x2, #1              // Length of 1 byte
+    mov     x8, #64             // syscall: write
+    svc     #0
+
+    add sp, sp, #16       // Liberar el stack
+
+    // Restore registers
+    ldp x27, x28, [sp], #16
+    ldp x25, x26, [sp], #16
+    ldp x23, x24, [sp], #16
+    ldp x21, x22, [sp], #16
+    ldp x19, x20, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
     "}
 
     };

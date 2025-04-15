@@ -79,6 +79,12 @@ public class ArmGenerator
                     Add(Register.HP, Register.HP, Register.X0);
                 }
                 break;
+            case StackObject.StackObjectType.Rune:
+                Comment($"Pushing char to heap - ({value} )");
+                //Esto nos permite utilizar el strore bayte solo con los de w
+                instrucciones.Add($"MOV w0, #'{value}'");
+                Push(Register.X0);
+                break;
         }
 
         //Este es el mundo de mi stack viertual
@@ -328,6 +334,14 @@ public class ArmGenerator
         stdLib.Use("print_string");
         instrucciones.Add($"MOV x0, {rs}");
         instrucciones.Add($"BL print_string");
+    }
+
+    //Imprimir Runes(chars)
+    public void PrintRune(string rs)
+    {
+        stdLib.Use("print_char");
+        instrucciones.Add($"MOV x0, {rs}");
+        instrucciones.Add($"BL print_char");
     }
 
     //Agregar comentarios

@@ -19,12 +19,13 @@ _start:
 	adrp x10, heap
 	add x10, x10, :lo12:heap
 	// Print statement
-	// Cargando valor bool: false
-	MOV x0, 0
+	// Rune constante: M
+	// Pushing char to heap - (M )
+	MOV w0, #'M'
 	STR x0, [sp, #-8]!
 	LDR x0, [sp], #8
-	MOV X0, x0
-	BL print_bool
+	MOV x0, x0
+	BL print_char
 	MOV x0, 0
 	MOV x8, 93
 	SVC #0
@@ -33,8 +34,10 @@ _start:
 
  // Libreria Estandar
 
-
-print_bool:
+// ------------------------
+// FUNCION PARA IMPRIMIR UN SOLO CARÁCTER
+// El valor del caracter viene en el reguistro X0
+print_char:
     // Save registers
     stp x29, x30, [sp, #-16]!
     stp x19, x20, [sp, #-16]!
@@ -43,24 +46,23 @@ print_bool:
     stp x25, x26, [sp, #-16]!
     stp x27, x28, [sp, #-16]!
 
-    cmp x0, #1
-    beq print_true
-
-print_false:
-    ldr x0, =msg_false
-    mov x1, x0         
-    mov x2, #6         
-    b print_msg_common
-
-print_true:
-    ldr x0, =msg_true
-    mov x1, x0         
-    mov x2, #5         
-
-print_msg_common:
-    mov x0, #1         
-    mov x8, #64        
+    sub sp, sp, #16       // Reservar espacio en el stack
+    strb w0, [sp]         // Guardar el carácter (1 byte)
+    
+    mov x1, sp            // Dirección del carácter
+    mov x2, #1            // Longitud = 1 byte
+    mov x0, #1            // stdout
+    mov x8, #64           // syscall write
     svc #0
+
+    // Print newline character
+    ldr     x1, =newline        // Address of newline character
+    mov     x0, #1              // File descriptor: stdout
+    mov     x2, #1              // Length of 1 byte
+    mov     x8, #64             // syscall: write
+    svc     #0
+
+    add sp, sp, #16       // Liberar el stack
 
     // Restore registers
     ldp x27, x28, [sp], #16

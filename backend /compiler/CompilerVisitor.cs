@@ -141,6 +141,9 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 case StackObject.StackObjectType.Bool:
                     c.PrintBool(Register.X0);
                     break;
+                case StackObject.StackObjectType.Rune:
+                    c.PrintRune(Register.X0);
+                    break;
             }
             
         }
@@ -287,6 +290,15 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     // VisitRune
     public override Object VisitRune(LanguageParser.RuneContext context)
     {
+        string rawRune = context.RUNE().GetText();
+        char processedRune = SecuanciasEscape.UnescapeRune(rawRune);//Procesa las secuancias de escape
+        
+        c.Comment("Rune constante: "+processedRune);
+        //Se generar un objeto de tipo rune
+        var runeObject = c.RuneObject();
+        //Se asocia el obejto con el strong
+        c.PushConstant(runeObject, processedRune);
+
         return null;
     }
 
