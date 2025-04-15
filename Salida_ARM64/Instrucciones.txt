@@ -15,3 +15,10 @@ qemu-aarch64 ./pruebas
 aarch64-linux-gnu-as -o pruebas.o pruebas.s
 aarch64-linux-gnu-ld -o pruebas pruebas.o
 ./pruebas
+
+
+
+
+****************Regustros reservados***********************************
+x14
+x10

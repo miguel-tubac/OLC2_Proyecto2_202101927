@@ -128,9 +128,8 @@ print_result:
     ldp x29, x30, [sp], #16    // Restore frame pointer and link register
     ret                        // Return to caller
 
-minus_sign:
-    .ascii ""-""               // Minus sign"
-    },
+    "},
+    
     
     { "print_string", @"
 //--------------------------------------------------------------
@@ -409,6 +408,9 @@ print_output:
 
     {"print_bool", @"
 
+// Input:
+//   x0 - The address
+//--------------------------------------------------------------
 print_bool:
     // Save registers
     stp x29, x30, [sp, #-16]!

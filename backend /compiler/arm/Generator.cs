@@ -66,17 +66,17 @@ public class ArmGenerator
             case StackObject.StackObjectType.String:
                 List<byte> stringArray2 = Utils.StringTo1ByteArray((string)value);
                 //Mantenemos la referencia al stack
-                Push(Register.HP);
+                Push(Register.X14);
                 //Se cargan los valores
                 for (int i = 0; i < stringArray2.Count; i++){
                     var charCode = stringArray2[i];
                     Comment($"Pushing char {charCode} to heap - ({(char) charCode})");
                     //Esto nos permite utilizar el strore bayte solo con los de w
                     Mov("w0", charCode);
-                    Strb("w0", Register.HP);
+                    Strb("w0", Register.X14);
                     //Aca se van metiendo caracter por caracter
                     Mov(Register.X0, 1);
-                    Add(Register.HP, Register.HP, Register.X0);
+                    Add(Register.X14, Register.X14, Register.X0);
                 }
                 break;
             case StackObject.StackObjectType.Rune:
@@ -324,8 +324,8 @@ public class ArmGenerator
     public void ConvertToFloat(string rs)
     {
         stdLib.Use("string_to_double");
-        instrucciones.Add("adrp x1, heap");
-        instrucciones.Add("add x1, x1, :lo12:heap");
+        instrucciones.Add("adrp x1, heap2");
+        instrucciones.Add("add x1, x1, :lo12:heap2");
         instrucciones.Add("BL string_to_double");
     }
 
@@ -369,6 +369,8 @@ public class ArmGenerator
         var sb = new StringBuilder();
         sb.AppendLine(".data");
         sb.AppendLine("heap: .space 4096");//se reserva un espacion para aspectos variables Bytes
+        sb.AppendLine("//Esto lo voy a usar para Float");
+        sb.AppendLine("heap2: .space 4096");
         sb.AppendLine("newline: .ascii \"\\n\"");//Esto es para ageregar un salto de linea luego de imprimir texto
         sb.AppendLine("zero:           .double 0.0");
         sb.AppendLine("one:            .double 1.0");
@@ -381,13 +383,17 @@ public class ArmGenerator
         sb.AppendLine("//Esta es para imprimir Bool");
         sb.AppendLine("msg_true:   .asciz \"true\\n\"");
         sb.AppendLine("msg_false:  .asciz \"false\\n\"");
+        sb.AppendLine("//Esta es para imprimir Int");
+        sb.AppendLine("minus_sign:  .ascii \"-\"");
         
         sb.AppendLine("\n.text");
         sb.AppendLine(".global _start");
         sb.AppendLine("_start:");
-        //sb.AppendLine("     adr x10, heap");
-        sb.AppendLine("\tadrp x10, heap");
-        sb.AppendLine("\tadd x10, x10, :lo12:heap");
+        sb.AppendLine("\t//Esta es para leer los strings");
+        sb.AppendLine("\tadr x14, heap");
+        sb.AppendLine("\t//Esta es para leer los Float");
+        sb.AppendLine("\tadrp x10, heap2");
+        sb.AppendLine("\tadd x10, x10, :lo12:heap2");
 
         //Se agrega el final del programa
         EndProgram();
