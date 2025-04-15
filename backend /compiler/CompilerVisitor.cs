@@ -53,13 +53,60 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     //Esta corresponde a la produccion: 'var' ID tipos ('=' expr)? ';' # PrimeraDecl 
     public override Object VisitPrimeraDecl(LanguageParser.PrimeraDeclContext context)
     {
-        var varname = context.ID().GetText();
-        c.Comment("Variable declaracion: "+varname);
+        string id = context.ID().GetText(); //Obtenemos el id
+        string tipo = context.tipos().GetText(); //Obtenemos el tipo
+        c.Comment("Variable declaracion: "+id);
 
-        //Aca se valida que el valor este en la pila
-        Visit(context.expr());
-        //Aca se asocia el valor al nombre en el stack virtual
-        c.TagObject(varname);
+        //Se obtiene un objeto con el tipo
+        var objTipo = c.GetDefaultValue(tipo);
+
+        // Si hay una asignación ('=' expr)
+        if (context.expr() != null){ 
+            //Aca se valida que el valor este en la pila
+            Visit(context.expr());
+            //Aca se asocia el valor al nombre en el stack virtual
+            c.TagObject(id);
+        }
+        else{
+            //Aca se declaran los valores por defecto
+            switch (objTipo.Type){
+                case StackObject.StackObjectType.Int:
+                    c.Comment("Ingresando al valor por defecto int");
+                    //Aca se pushe a la pila virtual y tambien a la de arm
+                    c.PushConstant(objTipo, 0);
+                    //Aca se asocia el valor al nombre en el stack virtual
+                    c.TagObject(id);
+                    break;
+                case StackObject.StackObjectType.Float:
+                    c.Comment("Ingresando al valor por defecto float");
+                    //Aca se pushe a la pila virtual y tambien a la de arm
+                    c.PushConstant(objTipo, "0.0");
+                    //Aca se asocia el valor al nombre en el stack virtual
+                    c.TagObject(id);
+                    break;
+                case StackObject.StackObjectType.String:
+                    c.Comment("Ingresando al valor por defecto string");
+                    //Aca se pushe a la pila virtual y tambien a la de arm
+                    c.PushConstant(objTipo, "");
+                    //Aca se asocia el valor al nombre en el stack virtual
+                    c.TagObject(id);
+                    break;
+                case StackObject.StackObjectType.Bool:
+                    c.Comment("Ingresando al valor por defecto bool");
+                    //Aca se pushe a la pila virtual y tambien a la de arm
+                    c.PushConstant(objTipo, 0);
+                    //Aca se asocia el valor al nombre en el stack virtual
+                    c.TagObject(id);
+                    break;
+                case StackObject.StackObjectType.Rune:
+                    c.Comment("Ingresando al valor por defecto rune");
+                    //Aca se pushe a la pila virtual y tambien a la de arm
+                    c.PushConstant(objTipo, '\0');
+                    //Aca se asocia el valor al nombre en el stack virtual
+                    c.TagObject(id);
+                    break;
+            }
+        }
 
         return null;
     }
@@ -177,6 +224,9 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
 
     public override Object VisitParens(LanguageParser.ParensContext context)
     {
+        //Solo necesito visitar el valor y guardarlo en la pila
+        c.Comment("(Operacion Agrupada)");
+        Visit(context.expr());
         return null;
     }
 
@@ -259,7 +309,11 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         string rawText = context.STRING().GetText();
         string processedText = SecuanciasEscape.UnescapeString(rawText);//Procesa las secuancias de escape
         
-        c.Comment("String constante: "+processedText);
+        if (processedText.Equals("\n")){
+            c.Comment("String constante: \\\\n");
+        }else{
+            c.Comment("String constante: "+processedText);
+        }
         //Se generar un objeto de tipo string
         var stringObject = c.StringObject();
         //Se asocia el obejto con el strong

@@ -70,7 +70,15 @@ public class ArmGenerator
                 //Se cargan los valores
                 for (int i = 0; i < stringArray2.Count; i++){
                     var charCode = stringArray2[i];
-                    Comment($"Pushing char {charCode} to heap - ({(char) charCode})");
+                    if (charCode == 10){
+                        Comment($"Pushing char {charCode} to heap - (\\\\n)");
+                    }
+                    else if (charCode == 13){
+                        Comment($"Pushing char {charCode} to heap - (\\\\r)");
+                    }
+                    else{
+                        Comment($"Pushing char {charCode} to heap - ({(char) charCode})");
+                    }
                     //Esto nos permite utilizar el strore bayte solo con los de w
                     Mov("w0", charCode);
                     Strb("w0", Register.X14);
@@ -160,6 +168,21 @@ public class ArmGenerator
             Length = 8,
             Depth = depth,
             Id = null
+        };
+    }
+
+
+    //Esto me permitira retornar un objeto de tipo a partir de una cadena
+    public StackObject GetDefaultValue(string tipo)
+    {
+        return tipo switch
+        {
+            "int" => IntObject(),
+            "float64" => FloatObject(),
+            "bool" => BoolObject(),
+            "string" => StringObject(),
+            "rune" => RuneObject(), // Usamos '\0' como valor por defecto
+            _ => throw new Exception($"Tipo desconocido: {tipo}")
         };
     }
 
