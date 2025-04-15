@@ -114,6 +114,14 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     //Esta es la declaracion explicita: ID ':=' expr ';' # SegundaDecl
     public override Object VisitSegundaDecl(LanguageParser.SegundaDeclContext context)
     {
+        string id = context.ID().GetText(); //Obtenemos el id
+        c.Comment("Variable declaracion Explixita: "+id);
+
+         //Aca se valida que el valor este en la pila
+        Visit(context.expr());
+        //Aca se asocia el valor al nombre en el stack virtual
+        c.TagObject(id);
+        
         return null;
     }
 

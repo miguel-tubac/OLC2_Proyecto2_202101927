@@ -123,9 +123,25 @@ namespace api.Controllers
                 }
 
                 //Aca es la nueva parte del transpilador
-                compiler.Visit(tree);
+                //compiler.Visit(tree);
+                foreach (var decl in searchVisitor.Declaraciones)
+                {
+                    compiler.Visit(decl);
+                }
 
-                consola2 += visitor.output;
+                foreach (var func in searchVisitor.Funciones)
+                {
+                    compiler.Visit(func);
+                }
+
+                // Ejecutar el `main`
+                foreach (var stmt in searchVisitor.MainBody)
+                {
+                    compiler.Visit(stmt);
+                }
+
+                //Esto era para la primera fase
+                //consola2 += visitor.output;
             }catch(ParseCanceledException ex){
                 consola2 += ex.Message;
                 //Se concatenan los errores semanticos y lexicos
@@ -145,17 +161,32 @@ namespace api.Controllers
                 consola2 += ex.Message;
             }
 
-            //Aca se genera el archivo
-            GenerarArchivo(compiler.c.ToString());
-            //Aca se manda el resultado al frontend
-            var response = new
-            {
-                //consola = consola2,
-                consola = compiler.c.ToString(),
-                tablaError = unionEror,
-                tablaSimbolos = visitor.simbolos
-            };
-            return Ok(response);
+            //Aca se valida si ocurrio algun error
+            if (consola2 != ""){
+                //Aca se manda el resultado al frontend
+                var response = new
+                {
+                    consola = consola2,
+                    //consola = compiler.c.ToString(),
+                    tablaError = unionEror,
+                    tablaSimbolos = visitor.simbolos
+                };
+                return Ok(response);
+            }else{
+                //Aca se genera el archivo
+                GenerarArchivo(compiler.c.ToString());
+                //Aca se manda el resultado al frontend
+                var response = new
+                {
+                    //consola = consola2,
+                    consola = compiler.c.ToString(),
+                    tablaError = unionEror,
+                    tablaSimbolos = visitor.simbolos
+                };
+                return Ok(response);
+            }
+
+            //Fianliza
         }
 
 
