@@ -436,6 +436,48 @@ public class ArmGenerator
         instrucciones.Add($"BL concat_strings");
     }
 
+    //Esto es para comparar las cadenas
+    public void CmpImm(string rd, int imm)
+    {
+        instrucciones.Add($"CMP {rd}, #{imm}");
+    }
+
+    public void CmpReg(string rd, string rd1)
+    {
+        instrucciones.Add($"CMP {rd}, {rd1}");
+    }
+
+    public void BoolBranchIgualacion()
+    {
+        stdLib.Use("comparar_igual_int");
+        instrucciones.Add($"BL comparar_igual_int");
+    }
+
+    public void BoolBranchIgualacion_Float()
+    {
+        stdLib.Use("comparar_igual_float");
+        instrucciones.Add($"BL comparar_igual_float");
+    }
+
+    public void BoolBranchIgualacion_Bool()
+    {
+        stdLib.Use("comparar_igual_bool");
+        instrucciones.Add($"BL comparar_igual_bool");
+    }
+
+    public void BoolBranchIgualacion_String()
+    {
+        stdLib.Use("comparar_igual_strings");
+        instrucciones.Add($"BL comparar_igual_strings");
+    }
+
+    public void BoolBranchIgualacion_Rune()
+    {
+        stdLib.Use("comparar_igual_rune");
+        instrucciones.Add($"BL comparar_igual_rune");
+    }
+
+
     //Sobre escribimos la clase para convertir a string
     public override string ToString()
     {

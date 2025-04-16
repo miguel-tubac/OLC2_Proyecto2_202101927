@@ -574,6 +574,119 @@ malloc_fail:
     ldp x29, x30, [sp], #16
     ret
     
+    "},
+    {"comparar_igual_int", @"
+//---------------Aca se comparan dos numeros de tipo int
+//Primer numero en X0
+//Segundo numero en X1
+//-----------Inicio de la funcion
+comparar_igual_int:
+    cmp x1, x0          // Compara X0 y X1
+    beq iguales        // Salta si son iguales
+    bne diferentes     // Salta si son diferentes
+iguales:
+    // Código para cuando son iguales
+    mov x0, #1
+    b fin
+diferentes:
+    // Código para cuando NO son iguales
+    mov x0, #0
+    b fin
+fin:
+    ret    
+    
+    "},
+
+    {"comparar_igual_float", @"
+//---------------Aca se comparan dos numeros de tipos float
+//Primer numero en D0
+//Segundo numero en D1
+//-----------Inicio de la funcion
+comparar_igual_float:
+    fcmp D1, D0          
+    beq iguales_float        // Salta si son iguales
+    bne diferentes_float     // Salta si son diferentes
+iguales_float:
+    // Código para cuando son iguales
+    mov x0, #1
+    b fin_float
+diferentes_float:
+    // Código para cuando NO son iguales
+    mov x0, #0
+    b fin_float
+fin_float:
+    ret 
+    "},
+
+    {"comparar_igual_bool",@"
+//---------------Aca se comparan dos numeros de tipos float
+//Primer numero en D0
+//Segundo numero en D1
+//-----------Inicio de la funcion
+comparar_igual_bool:
+    cmp x1, x0          
+    beq iguales_bool        // Salta si son iguales
+    bne diferentes_bool     // Salta si son diferentes
+iguales_bool:
+    // Código para cuando son iguales
+    mov x0, #1
+    b fin_bool
+diferentes_bool:
+    // Código para cuando NO son iguales
+    mov x0, #0
+    b fin_bool
+fin_bool:
+    ret 
+    "},
+
+    {"comparar_igual_strings", @"
+//---------------Aca se comparan dos strings
+//Primer string en x0
+//Segundo string en x1
+//-----------Inicio de la funcion
+comparar_igual_strings:
+    ldrb    w2, [x0], #1        // Cargar byte de cadena A y avanzar x0
+    ldrb    w3, [x1], #1        // Cargar byte de cadena B y avanzar x1
+    cmp     w2, w3              // ¿Son iguales los caracteres?
+    bne    strings_not_equal   // Si no, las cadenas son diferentes
+    cbz     w2, strings_equal   // Si es fin de cadena (0), son iguales
+    b       comparar_igual_strings     // Repetir con siguiente carácter
+
+strings_equal:
+    // Aquí entra si las cadenas son iguales
+    mov x0, #1
+    b       fin_string
+
+strings_not_equal:
+    // Aquí entra si son diferentes
+    mov x0, #0
+    b       fin_string
+
+fin_string:
+    ret
+    "},
+
+    {"comparar_igual_rune", @"
+//---------------Aca se comparan dos Runes
+//Primer rune en x0
+//Segundo rune en x1
+//-----------Inicio de la funcion
+comparar_igual_rune:
+    cmp    x0, x1              // ¿Son iguales los caracteres?
+    bne    rune_not_equal   // Si no, las cadenas son diferentes
+
+rune_equal:
+    // Aquí entra si las cadenas son iguales
+    mov x0, #1
+    b       fin_rune
+
+rune_not_equal:
+    // Aquí entra si son diferentes
+    mov x0, #0
+    b       fin_rune
+
+fin_rune:
+    ret
     "}
 
     };
