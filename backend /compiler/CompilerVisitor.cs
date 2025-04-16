@@ -240,6 +240,138 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
 
     public override Object VisitMulDiv(LanguageParser.MulDivContext context)
     {
+        c.Comment("MUL/DIV operaciones");
+        //Obtenemos la operacion
+        var operation = context.op.Text;
+        //Visitamos el lado izquierdo
+        // 1*|/|% 2
+        //TOP --> []
+        Visit(context.expr(0)); //Visit 1: TOP --> [1]
+        Visit(context.expr(1)); //Visit 2: TOP --> [2, 1]
+
+        //Se obtinen los valores de la pila
+        var left = c.PopObject(Register.X0);
+        var right = c.PopObject(Register.X1);
+
+        //Aca se manejan los tipos
+        switch ((right.Type, operation, left.Type))
+        {
+            //Esta es la parte de la suma:
+            case (StackObject.StackObjectType.Int, "*", StackObject.StackObjectType.Int):
+                //Se realiza la suma ya que los valores ya se encuentran en los reguistros x0 y x1
+                c.Mul(Register.X0, Register.X1, Register.X0);
+                //Ahora se vuelve a cargar al stack
+                c.Comment("Pushing resultados de la MULTIPLICACION");
+                //Esto es a nievel de arm
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(left));
+                break;
+            case (StackObject.StackObjectType.Int, "*", StackObject.StackObjectType.Float):
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D1, Register.X1);
+                //Se realiza la suma entre valores de tipo float
+                c.Fmul(Register.D0, Register.D1, Register.D0);
+                c.Comment("Pushing resultados de la MULTIPLICACION");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(left));
+                break;
+            case (StackObject.StackObjectType.Float, "*", StackObject.StackObjectType.Float):
+                //Se realiza la suma entre valores de tipo float
+                c.Fmul(Register.D0, Register.D1, Register.D0);
+                c.Comment("Pushing resultados de la MULTIPLICACION");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(left));
+                break;
+            case (StackObject.StackObjectType.Float, "*", StackObject.StackObjectType.Int):
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D0, Register.X0);
+                //Se realiza la suma entre valores de tipo float
+                c.Fmul(Register.D0, Register.D1, Register.D0);
+                c.Comment("Pushing resultados de la MULTIPLICACION");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(right));
+                break;
+            //----------------------Esta es la parte de la resta-------------------------------
+            case (StackObject.StackObjectType.Int, "/", StackObject.StackObjectType.Int):
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D1, Register.X1);
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D0, Register.X0);
+                //Se realiza la suma entre valores de tipo float
+                c.Fdiv(Register.D0, Register.D1, Register.D0);
+                //Se realiza la resta ya que los valores ya se encuentran en los reguistros x0 y x1
+                //c.Div(Register.X0, Register.X1, Register.X0);
+                //Ahora se vuelve a cargar al stack
+                c.Comment("Pushing resultados de la DIVICION");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                var copia = c.CloneObject(left);
+                copia.Type = StackObject.StackObjectType.Float;
+                c.PushObject(copia);
+                break;
+            case (StackObject.StackObjectType.Int, "/", StackObject.StackObjectType.Float):
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D1, Register.X1);
+                //Se realiza la suma entre valores de tipo float
+                c.Fdiv(Register.D0, Register.D1, Register.D0);
+                c.Comment("Pushing resultados de la DIVICION");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(left));
+                break;
+            case (StackObject.StackObjectType.Float, "/", StackObject.StackObjectType.Float):
+                //Se realiza la suma entre valores de tipo float
+                c.Fdiv(Register.D0, Register.D1, Register.D0);
+                c.Comment("Pushing resultados de la DIVICION");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(left));
+                break;
+            case (StackObject.StackObjectType.Float, "/", StackObject.StackObjectType.Int):
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D0, Register.X0);
+                //Se realiza la suma entre valores de tipo float
+                c.Fdiv(Register.D0, Register.D1, Register.D0);
+                c.Comment("Pushing resultados de la DIVICION");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(right));
+                break;
+            //--------------------------------Esto es para el modulo
+            case (StackObject.StackObjectType.Int, "%", StackObject.StackObjectType.Int):
+                //Se realiza: x2 = cociente (x0 / x1)
+                c.Sdiv(Register.X2, Register.X1, Register.X0);
+                //Ahora se realiza x0 = x0 - (x2 * x1)
+                c.Msub(Register.X0, Register.X2, Register.X0, Register.X1);
+                //Ahora se vuelve a cargar al stack
+                c.Comment("Pushing resultados del MODULO");
+                //Esto es a nievel de arm
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(left));
+                break;
+        }
+
         return null;
     }
 

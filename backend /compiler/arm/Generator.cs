@@ -257,6 +257,16 @@ public class ArmGenerator
         instrucciones.Add($"FSUB {rd}, {rs1}, {rs2}");
     }
 
+    public void Fmul(string rd, string rs1, string rs2)
+    {
+        instrucciones.Add($"FMUL {rd}, {rs1}, {rs2}");
+    }
+
+    public void Fdiv(string rd, string rs1, string rs2)
+    {
+        instrucciones.Add($"FDIV {rd}, {rs1}, {rs2}");
+    }
+
     public void Sub(string rd, string rs1, string rs2)
     {
         instrucciones.Add($"SUB {rd}, {rs1}, {rs2}");
@@ -270,6 +280,16 @@ public class ArmGenerator
     public void Div(string rd, string rs1, string rs2)
     {
         instrucciones.Add($"DIV {rd}, {rs1}, {rs2}");
+    }
+
+    public void Sdiv(string rd, string rs1, string rs2)
+    {
+        instrucciones.Add($"SDIV {rd}, {rs1}, {rs2}");
+    }
+
+    public void Msub(string rd, string rs1, string rs2, string rs3)
+    {
+        instrucciones.Add($"MSUB {rd}, {rs1}, {rs2}, {rs3}");
     }
 
     //Esta es la suma de un numero inmediato
