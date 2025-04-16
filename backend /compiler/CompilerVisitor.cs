@@ -638,20 +638,259 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     }
 
     //Validacion de las Operador de asignación
-    //VisitAsig_Aumento
+    //VisitAsig_Aumento: ID '+=' expr
     public override Object VisitAsig_Aumento(LanguageParser.Asig_AumentoContext context)
     {   
+        c.Comment("AUMENTO operacion (+=)");
+        var id = context.ID().GetText();
+        //-------Esto es para la expresion-----------------------------------
+        //Visitamos el lado derecho
+        Visit(context.expr()); //Visit 1: TOP --> [1]
+        //Se obtinen los valores de la pila
+        var right = c.PopObject(Register.X1);
+
+
+        //-------Esto es para el ID-----------------------------------
+        //Ahora calcular cuanto me tengo que mover relativo a la variable en el stack
+        var (offset, obj) = c.GetObject(id);
+
+        //Aca se obtiene la direccion
+        c.Mov(Register.X0, offset);
+        c.Add(Register.X0, Register.SP, Register.X0);
+
+        if (obj.Type == StackObject.StackObjectType.Float){
+            //Aca se consigue hace una copia del valor
+            c.Ldr(Register.D0, Register.X0);
+        }else{
+            //Aca se consigue hace una copia del valor
+            c.Ldr(Register.X0, Register.X0);
+        }
+
+        //Aca se manejan los tipos
+        //Objeto id = x0, d0 
+        //expresion rigth = x1, d1
+        switch ((obj.Type, right.Type))
+        {
+            //Esta es la parte de la suma:
+            case (StackObject.StackObjectType.Int, StackObject.StackObjectType.Int):
+                c.Comment("Se realiza la suma de los dos valores");
+                //Se realiza la suma ya que los valores ya se encuentran en los reguistros x0 y x1
+                c.Add(Register.X0, Register.X0, Register.X1);
+                //Ahora se vuelve a cargar al stack
+                c.Comment("Pushing resultados de la SUMA(+=)");
+                //Esto es a nievel de arm
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //Aca se carga a la pila virtual y no necesitamos el valor del id
+                obj.Type = right.Type;
+                c.PushObject(c.CloneObject(obj));
+                //Esto es a nievel de arm
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //Aca se carga a la pila virtual y no necesitamos el valor del id
+                obj.Type = right.Type;
+                c.PushObject(c.CloneObject(obj));
+                break;
+            case (StackObject.StackObjectType.Int, StackObject.StackObjectType.Float):
+                c.Comment("Se realiza la suma de los dos valores");
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D0, Register.X0);
+                //Se realiza la suma entre valores de tipo float
+                c.Fadd(Register.D0, Register.D0, Register.D1);
+                c.Comment("Pushing resultados de la SUMA(+=)");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                obj.Type = right.Type;
+                c.PushObject(c.CloneObject(obj));
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                obj.Type = right.Type;
+                c.PushObject(c.CloneObject(obj));
+                break;
+            case (StackObject.StackObjectType.Float, StackObject.StackObjectType.Float):
+                c.Comment("Se realiza la suma de los dos valores");
+                //Se realiza la suma entre valores de tipo float
+                c.Fadd(Register.D0, Register.D0, Register.D1);
+                c.Comment("Pushing resultados de la SUMA(+=)");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                obj.Type = right.Type;
+                c.PushObject(c.CloneObject(obj));
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                obj.Type = right.Type;
+                c.PushObject(c.CloneObject(obj));
+                break;
+            case (StackObject.StackObjectType.Float, StackObject.StackObjectType.Int):
+                c.Comment("Se realiza la suma de los dos valores");
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D1, Register.X1);
+                //Se realiza la suma entre valores de tipo float
+                c.Fadd(Register.D0, Register.D0, Register.D1);
+                c.Comment("Pushing resultados de la SUMA(+=)");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(obj));
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(obj));
+                break;
+            case (StackObject.StackObjectType.String, StackObject.StackObjectType.String):
+                c.Comment("Se realiza la suma de los dos valores");
+                c.Comment("Esto ordena las palabras en el orden correcto");
+                c.MovReg(Register.X2, Register.X0);
+                c.MovReg(Register.X3, Register.X1);
+                c.MovReg(Register.X0, Register.X3);
+                c.MovReg(Register.X1, Register.X2);
+                //Esto llama a la funcion de concat_strings
+                c.UnirStrings();
+                c.Comment("Pushing resultados de la SUMA");
+                //El resultado queda en el regusitro x0, por lo tanto se guarda en la pila
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(obj));
+                //El resultado queda en el regusitro x0, por lo tanto se guarda en la pila
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(obj));
+                break;
+        }
+
         return null;
     }
 
-    //VisitAsig_Decre
+    //VisitAsig_Decre: ID '-=' expr 
     public override Object VisitAsig_Decre(LanguageParser.Asig_DecreContext context)
     {
+        c.Comment("DECREMENTO operacion (-=)");
+        var id = context.ID().GetText();
+        //-------Esto es para la expresion-----------------------------------
+        //Visitamos el lado derecho
+        Visit(context.expr()); //Visit 1: TOP --> [1]
+        //Se obtinen los valores de la pila
+        var right = c.PopObject(Register.X1);
+
+
+        //-------Esto es para el ID-----------------------------------
+        //Ahora calcular cuanto me tengo que mover relativo a la variable en el stack
+        var (offset, obj) = c.GetObject(id);
+
+        //Aca se obtiene la direccion
+        c.Mov(Register.X0, offset);
+        c.Add(Register.X0, Register.SP, Register.X0);
+
+        if (obj.Type == StackObject.StackObjectType.Float){
+            //Aca se consigue hace una copia del valor
+            c.Ldr(Register.D0, Register.X0);
+        }else{
+            //Aca se consigue hace una copia del valor
+            c.Ldr(Register.X0, Register.X0);
+        }
+
+        //Aca se manejan los tipos
+        //Objeto id = x0, d0 
+        //expresion rigth = x1, d1
+        switch ((obj.Type, right.Type))
+        {
+            //Esta es la parte de la suma:
+            case (StackObject.StackObjectType.Int, StackObject.StackObjectType.Int):
+                c.Comment("Se realiza la Resta de los dos valores");
+                //Se realiza la suma ya que los valores ya se encuentran en los reguistros x0 y x1
+                c.Sub(Register.X0, Register.X0, Register.X1);
+                //Ahora se vuelve a cargar al stack
+                c.Comment("Pushing resultados de la RESTA(-=)");
+                //Esto es a nievel de arm
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //Aca se carga a la pila virtual y no necesitamos el valor del id
+                obj.Type = right.Type;
+                c.PushObject(c.CloneObject(obj));
+                //Esto es a nievel de arm
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //Aca se carga a la pila virtual y no necesitamos el valor del id
+                obj.Type = right.Type;
+                c.PushObject(c.CloneObject(obj));
+                break;
+            case (StackObject.StackObjectType.Int, StackObject.StackObjectType.Float):
+                c.Comment("Se realiza la Resta de los dos valores");
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D0, Register.X0);
+                //Se realiza la suma entre valores de tipo float
+                c.Fsub(Register.D0, Register.D0, Register.D1);
+                c.Comment("Pushing resultados de la RESTA(-=)");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                obj.Type = right.Type;
+                c.PushObject(c.CloneObject(obj));
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                obj.Type = right.Type;
+                c.PushObject(c.CloneObject(obj));
+                break;
+            case (StackObject.StackObjectType.Float, StackObject.StackObjectType.Float):
+                c.Comment("Se realiza la Resta de los dos valores");
+                //Se realiza la suma entre valores de tipo float
+                c.Fsub(Register.D0, Register.D0, Register.D1);
+                c.Comment("Pushing resultados de la RESTA(-=)");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                obj.Type = right.Type;
+                c.PushObject(c.CloneObject(obj));
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                obj.Type = right.Type;
+                c.PushObject(c.CloneObject(obj));
+                break;
+            case (StackObject.StackObjectType.Float, StackObject.StackObjectType.Int):
+                c.Comment("Se realiza la Resta de los dos valores");
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D1, Register.X1);
+                //Se realiza la suma entre valores de tipo float
+                c.Fsub(Register.D0, Register.D0, Register.D1);
+                c.Comment("Pushing resultados de la RESTA(-=)");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(obj));
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(obj));
+                break;
+        }
+
         return null;
     }
 
     //VisitAsigna
     public override Object VisitAsigna(LanguageParser.AsignaContext context){
+        //Solo devo de evaluar la asignacion
+        Visit(context.asignacion());
         return null;
     }
 

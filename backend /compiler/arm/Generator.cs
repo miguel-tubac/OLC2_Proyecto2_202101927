@@ -326,6 +326,11 @@ public class ArmGenerator
         instrucciones.Add($"MOV {rd}, {imm}");
     }
 
+    public void MovReg(string rd, string rd1)
+    {
+        instrucciones.Add($"MOV {rd}, {rd1}");
+    }
+
     public void Fmov(string rd, string rd1)
     {
         instrucciones.Add($"FMOV {rd}, {rd1}");
