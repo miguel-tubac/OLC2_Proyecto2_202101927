@@ -185,6 +185,7 @@ print_done:
 //La endrada debe de ingresar en el registro d0
 print_double:
     stp x29, x30, [sp, #-80]!
+    stp x10, x19, [sp, #-80]!
     mov x29, sp
     
     // Inicializar buffer
@@ -323,6 +324,7 @@ print_output:
     mov x8, #64
     svc #0
     
+    ldp x10, x19, [sp], #80
     ldp x29, x30, [sp], #80
     ret
     "},
@@ -410,6 +412,168 @@ print_char:
     ldp x19, x20, [sp], #16
     ldp x29, x30, [sp], #16
     ret
+    "},
+
+    {"concat_strings", @"
+// Suponiendo que:
+// x0 = dirección de la primera cadena (null-terminated)
+// x1 = dirección de la segunda cadena (null-terminated)
+// El resultado quedará en x0 (debes liberar esta memoria después)
+concat_strings:
+    // Guardar registros que usaremos
+    stp x29, x30, [sp, #-48]!
+    stp x19, x20, [sp, #16]
+    stp x21, x22, [sp, #32]
+    
+    // Guardar las cadenas originales
+    mov x19, x1  // Cadena 1
+    mov x20, x0  // Cadena 2
+    
+    // Calcular longitud de cadena 1
+    mov x0, x19
+    bl strlen
+    mov x21, x0  // Longitud cadena 1
+    
+    // Calcular longitud de cadena 2
+    mov x0, x20
+    bl strlen
+    mov x22, x0  // Longitud cadena 2
+    
+    // Reservar memoria para nueva cadena (long1 + long2 + 1)
+    add x0, x21, x22
+    add x0, x0, #1
+    bl malloc     // Asume que tienes una función malloc implementada
+    mov x23, x0   // Guardar puntero a nueva cadena
+    
+    // Copiar cadena 1
+    mov x0, x23
+    mov x1, x19
+    mov x2, x21
+    bl memcpy
+    
+    // Copiar cadena 2
+    add x0, x23, x21  // Posición después de cadena 1
+    mov x1, x20
+    mov x2, x22
+    bl memcpy
+    
+    // Añadir null-terminator
+    add x1, x21, x22
+    strb wzr, [x23, x1]
+    
+    // Devolver resultado en x0
+    mov x0, x23
+    
+    // Restaurar registros
+    ldp x21, x22, [sp, #32]
+    ldp x19, x20, [sp, #16]
+    ldp x29, x30, [sp], #48
+    ret
+
+// Función auxiliar strlen
+strlen:
+    mov x2, #0
+1:  ldrb w1, [x0], #1
+    cbz w1, 2f
+    add x2, x2, #1
+    b 1b
+2:  mov x0, x2
+    ret
+
+// Función auxiliar memcpy
+memcpy:
+    cbz x2, 2f
+1:  ldrb w3, [x1], #1
+    strb w3, [x0], #1
+    sub x2, x2, #1
+    cbnz x2, 1b
+2:  ret
+
+
+
+
+//La función malloc (memory allocation) es una de las funciones más fundamentales en programación de sistemas y sirve para:
+//Reservar memoria dinámica en tiempo de ejecución - Te permite solicitar bloques de memoria del sistema operativo cuando 
+//los necesites, en lugar de tener que pre-reservar todo al inicio del programa.
+malloc:
+    // Entrada: x0 = tamaño requerido en bytes
+    // Salida: x0 = puntero a la memoria asignada (o 0 si falla)
+    
+    // Guardar registros que modificaremos
+    stp x29, x30, [sp, #-16]!
+    stp x19, x20, [sp, #-16]!
+    
+    // Verificar si es la primera llamada
+    adrp x1, heap_start
+    add x1, x1, :lo12:heap_start
+    ldr x2, [x1]             // heap_start
+    cbnz x2, check_available // Si ya está inicializado, saltar
+    
+    // Inicializar el heap por primera vez
+    mov x0, #0               // Usar brk para obtener memoria
+    mov x8, #214             // syscall number para brk (214 en ARM64)
+    svc #0
+    
+    // Guardar el inicio del heap
+    adrp x1, heap_start
+    add x1, x1, :lo12:heap_start
+    str x0, [x1]
+    
+    // Calcular fin del heap
+    adrp x2, heap_size
+    add x2, x2, :lo12:heap_size
+    ldr x2, [x2]
+    add x0, x0, x2
+    
+    // Establecer nuevo break
+    mov x8, #214             // syscall brk
+    svc #0
+    
+    // Restaurar x0 (tamaño solicitado)
+    ldr x0, [sp, #32]        // Recuperar el parámetro original
+    
+check_available:
+    // Verificar si hay suficiente espacio
+    adrp x1, heap_start
+    add x1, x1, :lo12:heap_start
+    ldr x19, [x1]            // heap_start
+    
+    adrp x2, heap_used
+    add x2, x2, :lo12:heap_used
+    ldr x20, [x2]            // heap_used
+    
+    add x3, x19, x20         // Puntero actual
+    
+    // Calcular nuevo heap_used
+    add x4, x20, x0          // heap_used + tamaño solicitado
+    
+    // Verificar límites
+    adrp x5, heap_size
+    add x5, x5, :lo12:heap_size
+    ldr x5, [x5]
+    cmp x4, x5
+    b.gt malloc_fail          // Si excede el tamaño del heap, fallar
+    
+    // Actualizar heap_used
+    str x4, [x2]
+    
+    // Devolver puntero
+    mov x0, x3
+    
+    // Restaurar registros
+    ldp x19, x20, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+
+malloc_fail:
+    // No hay suficiente memoria
+    mov x0, #0               // Devolver NULL
+    
+    // Restaurar registros
+    ldp x19, x20, [sp], #16
+    ldp x29, x30, [sp], #16
+    ret
+    
     "}
 
     };

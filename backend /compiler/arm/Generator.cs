@@ -51,7 +51,7 @@ public class ArmGenerator
                 break;
             case StackObject.StackObjectType.String:
                 //Se carga la referencia de data
-                ADR(Register.HP, "heap");
+                //ADR(Register.HP, "heap");
                 //Esto obtiene la lista de los caracteres
                 List<byte> stringArray2 = Utils.StringTo1ByteArray((string)value);
                 //Mantenemos la referencia al stack
@@ -399,6 +399,13 @@ public class ArmGenerator
         instrucciones.Add($"ADR {rd}, {name}");
     }
 
+    //Esta funcion me permite concatenar strings
+    public void UnirStrings()
+    {
+        stdLib.Use("concat_strings");
+        instrucciones.Add($"BL concat_strings");
+    }
+
     //Sobre escribimos la clase para convertir a string
     public override string ToString()
     {
@@ -420,10 +427,15 @@ public class ArmGenerator
         sb.AppendLine("msg_false:  .asciz \"false\\n\"");
         sb.AppendLine("//Esta es para imprimir Int");
         sb.AppendLine("minus_sign:  .ascii \"-\"");
+        sb.AppendLine("//Esta es para concatenar Strings");
+        sb.AppendLine("heap_start: .quad 0 ");
+        sb.AppendLine("heap_size:  .quad 4096 ");
+        sb.AppendLine("heap_used:  .quad 0");
         
         sb.AppendLine("\n.text");
         sb.AppendLine(".global _start");
         sb.AppendLine("_start:");
+        sb.AppendLine("\tADR x10, heap");
 
         //Se agrega el final del programa
         EndProgram();

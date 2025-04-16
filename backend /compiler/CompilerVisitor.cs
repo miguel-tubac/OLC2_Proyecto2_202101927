@@ -296,11 +296,26 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.PushObject(c.CloneObject(left));
                 break;
             case (StackObject.StackObjectType.Float, "+", StackObject.StackObjectType.Int):
-                // lógica para int - int
-                
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D0, Register.X0);
+                //Se realiza la suma entre valores de tipo float
+                c.Fadd(Register.D0, Register.D0, Register.D1);
+                c.Comment("Pushing resultados de la SUMA");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(right));
                 break;
             case (StackObject.StackObjectType.String, "+", StackObject.StackObjectType.String):
-                // lógica para int - int
+                //Esto llama a la funcion de concat_strings
+                c.UnirStrings();
+                c.Comment("Pushing resultados de la SUMA");
+                //El resultado queda en el regusitro x0, por lo tanto se guarda en la pila
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(left));
                 break;
             //----------------------Esta es la parte de la resta-------------------------------
             case (StackObject.StackObjectType.Int, "-", StackObject.StackObjectType.Int):
