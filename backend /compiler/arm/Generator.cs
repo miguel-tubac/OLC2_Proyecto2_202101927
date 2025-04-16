@@ -547,6 +547,42 @@ public class ArmGenerator
         instrucciones.Add($"BL comparar_mayorIgual_rune");
     }
 
+    public void BoolBranchMenor_Int()
+    {
+        stdLib.Use("comparar_menor_int");
+        instrucciones.Add($"BL comparar_menor_int");
+    }
+
+    public void BoolBranchMenor_Float()
+    {
+        stdLib.Use("comparar_menor_float");
+        instrucciones.Add($"BL comparar_menor_float");
+    }
+
+    public void BoolBranchMenor_Rune()
+    {
+        stdLib.Use("comparar_menor_rune");
+        instrucciones.Add($"BL comparar_menor_rune");
+    }
+
+    public void BoolBranchMenorIgual_Int()
+    {
+        stdLib.Use("comparar_menorIgual_int");
+        instrucciones.Add($"BL comparar_menorIgual_int");
+    }
+
+    public void BoolBranchMenorIgual_Float()
+    {
+        stdLib.Use("comparar_menorIgual_float");
+        instrucciones.Add($"BL comparar_menorIgual_float");
+    }
+
+    public void BoolBranchMenorIgual_Rune()
+    {
+        stdLib.Use("comparar_menorIgual_rune");
+        instrucciones.Add($"BL comparar_menorIgual_rune");
+    }
+
 
 
     //Sobre escribimos la clase para convertir a string

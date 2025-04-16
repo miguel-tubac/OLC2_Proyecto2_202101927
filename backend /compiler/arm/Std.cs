@@ -672,7 +672,7 @@ fin_string:
 //Segundo rune en x1
 //-----------Inicio de la funcion
 comparar_igual_rune:
-    cmp    x0, x1              // ¿Son iguales los caracteres?
+    cmp    x1, x0              // ¿Son iguales los caracteres?
     bne    rune_not_equal   // Si no, las cadenas son diferentes
 
 rune_equal:
@@ -785,7 +785,7 @@ fin_string2:
 //Segundo rune en x1
 //-----------Inicio de la funcion
 comparar_desigual_rune:
-    cmp    x0, x1              // ¿Son iguales los caracteres?
+    cmp    x1, x0              // ¿Son iguales los caracteres?
     bne    rune_not_equal2   // Si no, las cadenas son diferentes
 
 rune_equal2:
@@ -846,7 +846,7 @@ fin_mayor_float:
 //Segundo rune en x1
 //-----------Inicio de la funcion
 comparar_mayor_rune:
-    cmp x0, x1              
+    cmp x1, x0              
     bgt x1_mayor_rune   // Salta si x1 > x0
     //De lo contrario
     mov x0, #0
@@ -903,7 +903,7 @@ fin_mayorIgual_float:
 //Segundo rune en x1
 //-----------Inicio de la funcion
 comparar_mayorIgual_rune:
-    cmp x0, x1              
+    cmp x1, x0              
     bge x1_mayorIgual_rune   // Salta si x1 >= x0
     //De lo contrario
     mov x0, #0
@@ -913,6 +913,121 @@ x1_mayorIgual_rune:
     mov x0, #1
     b fin_mayorIgual_rune
 fin_mayorIgual_rune:
+    ret
+    "},
+
+    {"comparar_menor_int", @"
+//---------------Aca se comparan dos numeros de tipo int
+//Primer numero en X0
+//Segundo numero en X1
+//-----------Inicio de la funcion
+comparar_menor_int:
+    cmp x1, x0          // Compara X0 y X1
+    blt x1_menor         //  Salta si x1 < x0
+    // De lo contrario
+    mov x0, #0
+    b fin_menor
+x1_menor:
+    // Código para cuando NO son iguales
+    mov x0, #1
+    b fin_menor
+fin_menor:
+    ret 
+    "},
+
+    {"comparar_menor_float", @"
+//---------------Aca se comparan dos numeros de tipos float
+//Primer numero en D0
+//Segundo numero en D1
+//-----------Inicio de la funcion
+comparar_menor_float:
+    fcmp D1, D0          
+    blt d1_menor         //  Salta si d1 < d0
+    // Código para cuando son iguales
+    mov x0, #0
+    b fin_menor_float
+d1_menor:
+    // Código para cuando NO son iguales
+    mov x0, #1
+    b fin_menor_float
+fin_menor_float:
+    ret 
+    
+    "},
+
+    {"comparar_menor_rune", @"
+//---------------Aca se comparan dos Runes
+//Primer rune en x0
+//Segundo rune en x1
+//-----------Inicio de la funcion
+comparar_menor_rune:
+    cmp x1, x0              
+    blt x1_menor_rune   // Salta si x1 < x0
+    //De lo contrario
+    mov x0, #0
+    b fin_menor_rune
+x1_menor_rune:
+    // Aquí entra si son diferentes
+    mov x0, #1
+    b fin_menor_rune
+fin_menor_rune:
+    ret
+    "},
+
+    {"comparar_menorIgual_int", @"
+//---------------Aca se comparan dos numeros de tipo int
+//Primer numero en X0
+//Segundo numero en X1
+//-----------Inicio de la funcion
+comparar_menorIgual_int:
+    cmp x1, x0          // Compara X0 y X1
+    ble x1_menorIgual         //  Salta si x1 <= x0
+    // De lo contrario
+    mov x0, #0
+    b fin_menorIgual
+x1_menorIgual:
+    // Código para cuando NO son iguales
+    mov x0, #1
+    b fin_menorIgual
+fin_menorIgual:
+    ret 
+    "},
+
+    {"comparar_menorIgual_float", @"
+//---------------Aca se comparan dos numeros de tipos float
+//Primer numero en D0
+//Segundo numero en D1
+//-----------Inicio de la funcion
+comparar_menorIgual_float:
+    fcmp D1, D0          
+    ble d1_menorIgual         //  Salta si d1 <= d0
+    // Código para cuando son iguales
+    mov x0, #0
+    b fin_menorIgual_float
+d1_menorIgual:
+    // Código para cuando NO son iguales
+    mov x0, #1
+    b fin_menorIgual_float
+fin_menorIgual_float:
+    ret 
+    "},
+
+    {"comparar_menorIgual_rune", @"
+//---------------Aca se comparan dos Runes
+//Primer rune en x0
+//Segundo rune en x1
+//-----------Inicio de la funcion
+comparar_menorIgual_rune:
+    cmp x1, x0              
+    ble x1_menorIgual_rune   // Salta si x1 <= x0
+    //De lo contrario
+    mov x0, #0
+    b fin_menorIgual_rune
+x1_menorIgual_rune:
+    // Aquí entra si son diferentes
+    mov x0, #1
+    b fin_menorIgual_rune
+fin_menorIgual_rune:
     ret
     "}
 

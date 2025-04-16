@@ -33,7 +33,7 @@ _start:
 	STR x0, [sp, #-8]!
 	LDR x0, [sp], #8
 	LDR x1, [sp], #8
-	BL comparar_mayorIgual_int
+	BL comparar_menorIgual_int
 	// Pushing resultados de los RELACIONALES (> | < | >= | <=)
 	STR x0, [sp, #-8]!
 	LDR x0, [sp], #8
@@ -55,7 +55,7 @@ _start:
 	// Final de la lectura del float
 	LDR d0, [sp], #8
 	LDR d1, [sp], #8
-	BL comparar_mayorIgual_float
+	BL comparar_menorIgual_float
 	// Pushing resultados de los RELACIONALES (> | < | >= | <=)
 	STR x0, [sp, #-8]!
 	LDR x0, [sp], #8
@@ -63,11 +63,11 @@ _start:
 	BL print_bool
 	// Print statement
 	// Operacion de (> | < | >= | <=)
-	// Constante: 2
-	MOV x0, 2
+	// Constante: 4
+	MOV x0, 4
 	STR x0, [sp, #-8]!
-	// Flotante: 1.01
-	LDR x0, =0x3FF028F5C0000000
+	// Flotante: 2.01
+	LDR x0, =0x4000147AE0000000
 	FMOV d0, x0
 	STR d0, [sp, #-8]!
 	// Fin de conversion de cadena a Float
@@ -75,7 +75,7 @@ _start:
 	LDR d0, [sp], #8
 	LDR x1, [sp], #8
 	SCVTF d1, x1
-	BL comparar_mayorIgual_float
+	BL comparar_menorIgual_float
 	// Pushing resultados de los RELACIONALES (> | < | >= | <=)
 	STR x0, [sp, #-8]!
 	LDR x0, [sp], #8
@@ -95,7 +95,7 @@ _start:
 	LDR x0, [sp], #8
 	LDR d1, [sp], #8
 	SCVTF d0, x0
-	BL comparar_mayorIgual_float
+	BL comparar_menorIgual_float
 	// Pushing resultados de los RELACIONALES (> | < | >= | <=)
 	STR x0, [sp, #-8]!
 	LDR x0, [sp], #8
@@ -103,13 +103,13 @@ _start:
 	BL print_bool
 	// Print statement
 	// Operacion de (> | < | >= | <=)
+	// Rune constante: B
+	// Pushing char to heap - (B )
+	MOV w0, #'B'
+	STR x0, [sp, #-8]!
 	// Rune constante: A
 	// Pushing char to heap - (A )
 	MOV w0, #'A'
-	STR x0, [sp, #-8]!
-	// Rune constante: a
-	// Pushing char to heap - (a )
-	MOV w0, #'a'
 	STR x0, [sp, #-8]!
 	LDR x0, [sp], #8
 	LDR x1, [sp], #8
@@ -131,17 +131,17 @@ _start:
 //Primer numero en X0
 //Segundo numero en X1
 //-----------Inicio de la funcion
-comparar_mayorIgual_int:
+comparar_menorIgual_int:
     cmp x1, x0          // Compara X0 y X1
-    bge x1_mayorIgual         //  Salta si x1 >= x0
+    ble x1_menorIgual         //  Salta si x1 <= x0
     // De lo contrario
     mov x0, #0
-    b fin_mayorIgual
-x1_mayorIgual:
+    b fin_menorIgual
+x1_menorIgual:
     // Código para cuando NO son iguales
     mov x0, #1
-    b fin_mayorIgual
-fin_mayorIgual:
+    b fin_menorIgual
+fin_menorIgual:
     ret 
     
 
@@ -193,17 +193,17 @@ print_msg_common:
 //Primer numero en D0
 //Segundo numero en D1
 //-----------Inicio de la funcion
-comparar_mayorIgual_float:
+comparar_menorIgual_float:
     fcmp D1, D0          
-    bge d1_mayorIgual         //  Salta si d1 >= d0
+    ble d1_menorIgual         //  Salta si d1 <= d0
     // Código para cuando son iguales
     mov x0, #0
-    b fin_mayorIgual_float
-d1_mayorIgual:
+    b fin_menorIgual_float
+d1_menorIgual:
     // Código para cuando NO son iguales
     mov x0, #1
-    b fin_mayorIgual_float
-fin_mayorIgual_float:
+    b fin_menorIgual_float
+fin_menorIgual_float:
     ret 
     
 
@@ -213,7 +213,7 @@ fin_mayorIgual_float:
 //Segundo rune en x1
 //-----------Inicio de la funcion
 comparar_mayorIgual_rune:
-    cmp x0, x1              
+    cmp x1, x0              
     bge x1_mayorIgual_rune   // Salta si x1 >= x0
     //De lo contrario
     mov x0, #0

@@ -655,6 +655,56 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 //Esto llama a la funcion de concat_strings
                 c.BoolBranchMayorIgual_Rune();
                 break;
+            //----------------------Esta es la parte del menor-------------------------------
+            case (StackObject.StackObjectType.Int, "<", StackObject.StackObjectType.Int):
+                //Se realiza la comparacion entre los valores de x0 y x1
+                c.BoolBranchMenor_Int();
+                break;
+            case (StackObject.StackObjectType.Float, "<", StackObject.StackObjectType.Float):
+                //Se realiza la llamada a la funcion para comparar
+                c.BoolBranchMenor_Float();
+                break;
+            case (StackObject.StackObjectType.Int, "<", StackObject.StackObjectType.Float):
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D1, Register.X1);
+                //Se realiza la llamada a la funcion para comparar
+                c.BoolBranchMenor_Float();
+                break;
+            case (StackObject.StackObjectType.Float, "<", StackObject.StackObjectType.Int):
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D0, Register.X0);
+                //Se realiza la llamada a la funcion para comparar
+                c.BoolBranchMenor_Float();
+                break;
+            case (StackObject.StackObjectType.Rune, "<", StackObject.StackObjectType.Rune):
+                //Esto llama a la funcion de concat_strings
+                c.BoolBranchMenor_Rune();
+                break;
+            //----------------------Esta es la parte del menor Igual-------------------------------
+            case (StackObject.StackObjectType.Int, "<=", StackObject.StackObjectType.Int):
+                //Se realiza la comparacion entre los valores de x0 y x1
+                c.BoolBranchMenorIgual_Int();
+                break;
+            case (StackObject.StackObjectType.Float, "<=", StackObject.StackObjectType.Float):
+                //Se realiza la llamada a la funcion para comparar
+                c.BoolBranchMenorIgual_Float();
+                break;
+            case (StackObject.StackObjectType.Int, "<=", StackObject.StackObjectType.Float):
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D1, Register.X1);
+                //Se realiza la llamada a la funcion para comparar
+                c.BoolBranchMenorIgual_Float();
+                break;
+            case (StackObject.StackObjectType.Float, "<=", StackObject.StackObjectType.Int):
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D0, Register.X0);
+                //Se realiza la llamada a la funcion para comparar
+                c.BoolBranchMenorIgual_Float();
+                break;
+            case (StackObject.StackObjectType.Rune, "<=", StackObject.StackObjectType.Rune):
+                //Esto llama a la funcion de concat_strings
+                c.BoolBranchMenorIgual_Rune();
+                break;
         }
 
         //Ahora se vuelve a cargar al stack
