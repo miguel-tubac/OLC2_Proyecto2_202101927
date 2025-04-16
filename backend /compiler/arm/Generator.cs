@@ -510,6 +510,44 @@ public class ArmGenerator
 
     //---------------------------------fin de las opreacionde---------------------------------------
 
+    //Aca van las operaciones de los RELACIONALES ('>' | '<' | '>=' | '<=')
+    public void BoolBranchMayor_Int()
+    {
+        stdLib.Use("comparar_mayor_int");
+        instrucciones.Add($"BL comparar_mayor_int");
+    }
+
+    public void BoolBranchMayor_Float()
+    {
+        stdLib.Use("comparar_mayor_float");
+        instrucciones.Add($"BL comparar_mayor_float");
+    }
+
+    public void BoolBranchMayor_Rune()
+    {
+        stdLib.Use("comparar_mayor_rune");
+        instrucciones.Add($"BL comparar_mayor_rune");
+    }
+
+    public void BoolBranchMayorIgual_Int()
+    {
+        stdLib.Use("comparar_mayorIgual_int");
+        instrucciones.Add($"BL comparar_mayorIgual_int");
+    }
+
+    public void BoolBranchMayorIgual_Float()
+    {
+        stdLib.Use("comparar_mayorIgual_float");
+        instrucciones.Add($"BL comparar_mayorIgual_float");
+    }
+
+    public void BoolBranchMayorIgual_Rune()
+    {
+        stdLib.Use("comparar_mayorIgual_rune");
+        instrucciones.Add($"BL comparar_mayorIgual_rune");
+    }
+
+
 
     //Sobre escribimos la clase para convertir a string
     public override string ToString()

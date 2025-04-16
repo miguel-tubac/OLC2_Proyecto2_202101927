@@ -800,6 +800,120 @@ rune_not_equal2:
 
 fin_rune2:
     ret
+    "},
+
+    {"comparar_mayor_int", @"
+//---------------Aca se comparan dos numeros de tipo int
+//Primer numero en X0
+//Segundo numero en X1
+//-----------Inicio de la funcion
+comparar_mayor_int:
+    cmp x1, x0          // Compara X0 y X1
+    bgt x1_mayor         //  Salta si x1 > x0
+    // De lo contrario
+    mov x0, #0
+    b fin_mayor
+x1_mayor:
+    // Código para cuando NO son iguales
+    mov x0, #1
+    b fin_mayor
+fin_mayor:
+    ret 
+    "},
+
+    {"comparar_mayor_float", @"
+//---------------Aca se comparan dos numeros de tipos float
+//Primer numero en D0
+//Segundo numero en D1
+//-----------Inicio de la funcion
+comparar_mayor_float:
+    fcmp D1, D0          
+    bgt d1_mayor         //  Salta si d1 > d0
+    // Código para cuando son iguales
+    mov x0, #0
+    b fin_mayor_float
+d1_mayor:
+    // Código para cuando NO son iguales
+    mov x0, #1
+    b fin_mayor_float
+fin_mayor_float:
+    ret 
+    "},
+
+    {"comparar_mayor_rune", @"
+//---------------Aca se comparan dos Runes
+//Primer rune en x0
+//Segundo rune en x1
+//-----------Inicio de la funcion
+comparar_mayor_rune:
+    cmp x0, x1              
+    bgt x1_mayor_rune   // Salta si x1 > x0
+    //De lo contrario
+    mov x0, #0
+    b fin_mayor_rune
+x1_mayor_rune:
+    // Aquí entra si son diferentes
+    mov x0, #1
+    b fin_mayor_rune
+fin_mayor_rune:
+    ret
+    "},
+
+    {"comparar_mayorIgual_int", @"
+//---------------Aca se comparan dos numeros de tipo int
+//Primer numero en X0
+//Segundo numero en X1
+//-----------Inicio de la funcion
+comparar_mayorIgual_int:
+    cmp x1, x0          // Compara X0 y X1
+    bge x1_mayorIgual         //  Salta si x1 >= x0
+    // De lo contrario
+    mov x0, #0
+    b fin_mayorIgual
+x1_mayorIgual:
+    // Código para cuando NO son iguales
+    mov x0, #1
+    b fin_mayorIgual
+fin_mayorIgual:
+    ret 
+    "},
+
+    {"comparar_mayorIgual_float", @"
+//---------------Aca se comparan dos numeros de tipos float
+//Primer numero en D0
+//Segundo numero en D1
+//-----------Inicio de la funcion
+comparar_mayorIgual_float:
+    fcmp D1, D0          
+    bge d1_mayorIgual         //  Salta si d1 >= d0
+    // Código para cuando son iguales
+    mov x0, #0
+    b fin_mayorIgual_float
+d1_mayorIgual:
+    // Código para cuando NO son iguales
+    mov x0, #1
+    b fin_mayorIgual_float
+fin_mayorIgual_float:
+    ret 
+    "},
+
+    {"comparar_mayorIgual_rune", @"
+//---------------Aca se comparan dos Runes
+//Primer rune en x0
+//Segundo rune en x1
+//-----------Inicio de la funcion
+comparar_mayorIgual_rune:
+    cmp x0, x1              
+    bge x1_mayorIgual_rune   // Salta si x1 >= x0
+    //De lo contrario
+    mov x0, #0
+    b fin_mayorIgual_rune
+x1_mayorIgual_rune:
+    // Aquí entra si son diferentes
+    mov x0, #1
+    b fin_mayorIgual_rune
+fin_mayorIgual_rune:
+    ret
     "}
 
 

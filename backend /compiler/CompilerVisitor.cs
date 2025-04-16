@@ -590,9 +590,82 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     }
 
 
-     // VisitRelacional
+     // VisitRelacional: expr op = ('>' | '<' | '>=' | '<=') expr 
     public override Object VisitRelacional(LanguageParser.RelacionalContext context)
     {
+        c.Comment("Operacion de (> | < | >= | <=)");
+        //Se obtiene la opracion
+        var op = context.op.Text;
+        //Se visitan las dos expresiones por ende ya estan en la pila sp
+        Visit(context.expr(0)); //Visit 1: TOP --> [1]
+        Visit(context.expr(1)); //Visit 2: TOP --> [2, 1]
+
+        //Se obtinen los valores de la pila
+        var left = c.PopObject(Register.X0);
+        var right = c.PopObject(Register.X1);
+        //Aca se manejan los tipos
+        switch ((right.Type, op, left.Type)){
+             //Esta es la parte de la Igulacion:
+            case (StackObject.StackObjectType.Int, ">", StackObject.StackObjectType.Int):
+                //Se realiza la comparacion entre los valores de x0 y x1
+                c.BoolBranchMayor_Int();
+                break;
+            case (StackObject.StackObjectType.Float, ">", StackObject.StackObjectType.Float):
+                //Se realiza la llamada a la funcion para comparar
+                c.BoolBranchMayor_Float();
+                break;
+            case (StackObject.StackObjectType.Int, ">", StackObject.StackObjectType.Float):
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D1, Register.X1);
+                //Se realiza la llamada a la funcion para comparar
+                c.BoolBranchMayor_Float();
+                break;
+            case (StackObject.StackObjectType.Float, ">", StackObject.StackObjectType.Int):
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D0, Register.X0);
+                //Se realiza la llamada a la funcion para comparar
+                c.BoolBranchMayor_Float();
+                break;
+            case (StackObject.StackObjectType.Rune, ">", StackObject.StackObjectType.Rune):
+                //Esto llama a la funcion de concat_strings
+                c.BoolBranchMayor_Rune();
+                break;
+            //----------------------Esta es la parte de la diferencia-------------------------------
+            case (StackObject.StackObjectType.Int, ">=", StackObject.StackObjectType.Int):
+                //Se realiza la comparacion entre los valores de x0 y x1
+                c.BoolBranchMayorIgual_Int();
+                break;
+            case (StackObject.StackObjectType.Float, ">=", StackObject.StackObjectType.Float):
+                //Se realiza la llamada a la funcion para comparar
+                c.BoolBranchMayorIgual_Float();
+                break;
+            case (StackObject.StackObjectType.Int, ">=", StackObject.StackObjectType.Float):
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D1, Register.X1);
+                //Se realiza la llamada a la funcion para comparar
+                c.BoolBranchMayorIgual_Float();
+                break;
+            case (StackObject.StackObjectType.Float, ">=", StackObject.StackObjectType.Int):
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D0, Register.X0);
+                //Se realiza la llamada a la funcion para comparar
+                c.BoolBranchMayorIgual_Float();
+                break;
+            case (StackObject.StackObjectType.Rune, ">=", StackObject.StackObjectType.Rune):
+                //Esto llama a la funcion de concat_strings
+                c.BoolBranchMayorIgual_Rune();
+                break;
+        }
+
+        //Ahora se vuelve a cargar al stack
+        c.Comment("Pushing resultados de los RELACIONALES (> | < | >= | <=)");
+        //Esto es a nievel de arm
+        c.Push(Register.X0);
+        //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+        var objec = c.CloneObject(left);
+        objec.Type = StackObject.StackObjectType.Bool;
+        c.PushObject(objec);
+
         return null;
     }
     
@@ -616,170 +689,78 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
             case (StackObject.StackObjectType.Int, "==", StackObject.StackObjectType.Int):
                 //Se realiza la comparacion entre los valores de x0 y x1
                 c.BoolBranchIgualacion();
-                //Ahora se vuelve a cargar al stack
-                c.Comment("Pushing resultados de la IGUALACION(==)");
-                //Esto es a nievel de arm
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                var objec = c.CloneObject(left);
-                objec.Type = StackObject.StackObjectType.Bool;
-                c.PushObject(objec);
                 break;
             case (StackObject.StackObjectType.Float, "==", StackObject.StackObjectType.Float):
                 //Se realiza la llamada a la funcion para comparar
                 c.BoolBranchIgualacion_Float();
-                c.Comment("Pushing resultados de la IGUALACION(==)");
-                //Esto es a nievel de arm
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                var objec3 = c.CloneObject(left);
-                objec3.Type = StackObject.StackObjectType.Bool;
-                c.PushObject(objec3);
                 break;
             case (StackObject.StackObjectType.Int, "==", StackObject.StackObjectType.Float):
                 // Primero se convierte el valor del tipo int a float
                 c.Scvtf(Register.D1, Register.X1);
                 //Se realiza la llamada a la funcion para comparar
                 c.BoolBranchIgualacion_Float();
-                c.Comment("Pushing resultados de la IGUALACION(==)");
-                //Esto es a nievel de arm
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                var objec2 = c.CloneObject(left);
-                objec2.Type = StackObject.StackObjectType.Bool;
-                c.PushObject(objec2);
                 break;
             case (StackObject.StackObjectType.Float, "==", StackObject.StackObjectType.Int):
                 // Primero se convierte el valor del tipo int a float
                 c.Scvtf(Register.D0, Register.X0);
                 //Se realiza la llamada a la funcion para comparar
                 c.BoolBranchIgualacion_Float();
-                c.Comment("Pushing resultados de la IGUALACION(==)");
-                //Esto es a nievel de arm
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                var objec4 = c.CloneObject(right);
-                objec4.Type = StackObject.StackObjectType.Bool;
-                c.PushObject(objec4);
                 break;
             case (StackObject.StackObjectType.Bool, "==", StackObject.StackObjectType.Bool):
                 //Se realiza la llamada a la funcion para comparar
                 c.BoolBranchIgualacion_Bool();
-                c.Comment("Pushing resultados de la IGUALACION(==)");
-                //Esto es a nievel de arm
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                var objec5 = c.CloneObject(left);
-                objec5.Type = StackObject.StackObjectType.Bool;
-                c.PushObject(objec5);
                 break;
             case (StackObject.StackObjectType.String, "==", StackObject.StackObjectType.String):
                 //Esto llama a la funcion de concat_strings
                 c.BoolBranchIgualacion_String();
-                c.Comment("Pushing resultados de la IGUALACION(==)");
-                //El resultado queda en el regusitro x0, por lo tanto se guarda en la pila
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                var objec6 = c.CloneObject(left);
-                objec6.Type = StackObject.StackObjectType.Bool;
-                c.PushObject(objec6);
                 break;
             case (StackObject.StackObjectType.Rune, "==", StackObject.StackObjectType.Rune):
                 //Esto llama a la funcion de concat_strings
                 c.BoolBranchIgualacion_Rune();
-                c.Comment("Pushing resultados de la IGUALACION(==)");
-                //El resultado queda en el regusitro x0, por lo tanto se guarda en la pila
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                var objec7 = c.CloneObject(left);
-                objec7.Type = StackObject.StackObjectType.Bool;
-                c.PushObject(objec7);
                 break;
             //----------------------Esta es la parte de la diferencia-------------------------------
             case (StackObject.StackObjectType.Int, "!=", StackObject.StackObjectType.Int):
                 //Se realiza la comparacion entre los valores de x0 y x1
                 c.BoolBranchDesigualacion_Int();
-                //Ahora se vuelve a cargar al stack
-                c.Comment("Pushing resultados de la DESIGUALACION(!=)");
-                //Esto es a nievel de arm
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                var objec8 = c.CloneObject(left);
-                objec8.Type = StackObject.StackObjectType.Bool;
-                c.PushObject(objec8);
                 break;
             case (StackObject.StackObjectType.Float, "!=", StackObject.StackObjectType.Float):
                 //Se realiza la llamada a la funcion para comparar
                 c.BoolBranchDesigualacion_Float();
-                c.Comment("Pushing resultados de la DESIGUALACION(!=)");
-                //Esto es a nievel de arm
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                var objec9 = c.CloneObject(left);
-                objec9.Type = StackObject.StackObjectType.Bool;
-                c.PushObject(objec9);
                 break;
             case (StackObject.StackObjectType.Int, "!=", StackObject.StackObjectType.Float):
                 // Primero se convierte el valor del tipo int a float
                 c.Scvtf(Register.D1, Register.X1);
                 //Se realiza la llamada a la funcion para comparar
                 c.BoolBranchDesigualacion_Float();
-                c.Comment("Pushing resultados de la DESIGUALACION(!=)");
-                //Esto es a nievel de arm
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                var objec10 = c.CloneObject(left);
-                objec10.Type = StackObject.StackObjectType.Bool;
-                c.PushObject(objec10);
                 break;
             case (StackObject.StackObjectType.Float, "!=", StackObject.StackObjectType.Int):
                 // Primero se convierte el valor del tipo int a float
                 c.Scvtf(Register.D0, Register.X0);
                 //Se realiza la llamada a la funcion para comparar
                 c.BoolBranchDesigualacion_Float();
-                c.Comment("Pushing resultados de la DESIGUALACION(!=)");
-                //Esto es a nievel de arm
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                var objec11 = c.CloneObject(right);
-                objec11.Type = StackObject.StackObjectType.Bool;
-                c.PushObject(objec11);
                 break;
             case (StackObject.StackObjectType.Bool, "!=", StackObject.StackObjectType.Bool):
                 //Se realiza la llamada a la funcion para comparar
                 c.BoolBranchDesigualacion_Bool();
-                c.Comment("Pushing resultados de la DESIGUALACION(!=)");
-                //Esto es a nievel de arm
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                var objec12 = c.CloneObject(left);
-                objec12.Type = StackObject.StackObjectType.Bool;
-                c.PushObject(objec12);
                 break;
             case (StackObject.StackObjectType.String, "!=", StackObject.StackObjectType.String):
                 //Esto llama a la funcion de concat_strings
                 c.BoolBranchDesigualacion_String();
-                c.Comment("Pushing resultados de la DESIGUALACION(!=)");
-                //El resultado queda en el regusitro x0, por lo tanto se guarda en la pila
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                var objec13 = c.CloneObject(left);
-                objec13.Type = StackObject.StackObjectType.Bool;
-                c.PushObject(objec13);
                 break;
             case (StackObject.StackObjectType.Rune, "!=", StackObject.StackObjectType.Rune):
                 //Esto llama a la funcion de concat_strings
                 c.BoolBranchDesigualacion_Rune();
-                c.Comment("Pushing resultados de la DESIGUALACION(!=)");
-                //El resultado queda en el regusitro x0, por lo tanto se guarda en la pila
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                var objec14 = c.CloneObject(left);
-                objec14.Type = StackObject.StackObjectType.Bool;
-                c.PushObject(objec14);
                 break;
         }
 
+        //Ahora se vuelve a cargar al stack
+        c.Comment("Pushing resultados de la IGUALACION(==)");
+        //Esto es a nievel de arm
+        c.Push(Register.X0);
+        //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+        var objec = c.CloneObject(left);
+        objec.Type = StackObject.StackObjectType.Bool;
+        c.PushObject(objec);
 
         return null;
     }
