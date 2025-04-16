@@ -619,7 +619,7 @@ fin_float:
     "},
 
     {"comparar_igual_bool",@"
-//---------------Aca se comparan dos numeros de tipos float
+//---------------Aca se comparan dos numeros de tipos bool
 //Primer numero en D0
 //Segundo numero en D1
 //-----------Inicio de la funcion
@@ -687,7 +687,121 @@ rune_not_equal:
 
 fin_rune:
     ret
+    "},
+
+    {"comparar_desigual_int", @"
+//---------------Aca se comparan dos numeros de tipo int
+//Primer numero en X0
+//Segundo numero en X1
+//-----------Inicio de la funcion
+comparar_desigual_int:
+    cmp x1, x0          // Compara X0 y X1
+    beq iguales2        // Salta si son iguales
+    bne diferentes2     // Salta si son diferentes
+iguales2:
+    // Código para cuando son iguales
+    mov x0, #0
+    b fin2
+diferentes2:
+    // Código para cuando NO son iguales
+    mov x0, #1
+    b fin2
+fin2:
+    ret 
+    "},
+
+    {"comparar_desigual_float", @"
+//---------------Aca se comparan dos numeros de tipos float
+//Primer numero en D0
+//Segundo numero en D1
+//-----------Inicio de la funcion
+comparar_desigual_float:
+    fcmp D1, D0          
+    beq iguales_float2        // Salta si son iguales
+    bne diferentes_float2     // Salta si son diferentes
+iguales_float2:
+    // Código para cuando son iguales
+    mov x0, #0
+    b fin_float2
+diferentes_float2:
+    // Código para cuando NO son iguales
+    mov x0, #1
+    b fin_float2
+fin_float2:
+    ret 
+    "},
+
+    {"comparar_desigual_bool", @"
+//---------------Aca se comparan dos numeros de tipos bool
+//Primer numero en D0
+//Segundo numero en D1
+//-----------Inicio de la funcion
+comparar_desigual_bool:
+    cmp x1, x0          
+    beq iguales_bool2        // Salta si son iguales
+    bne diferentes_bool2     // Salta si son diferentes
+iguales_bool2:
+    // Código para cuando son iguales
+    mov x0, #0
+    b fin_bool2
+diferentes_bool2:
+    // Código para cuando NO son iguales
+    mov x0, #1
+    b fin_bool2
+fin_bool2:
+    ret 
+    "},
+
+    {"comparar_desigual_strings", @"
+//---------------Aca se comparan dos strings
+//Primer string en x0
+//Segundo string en x1
+//-----------Inicio de la funcion
+comparar_desigual_strings:
+    ldrb    w2, [x0], #1        // Cargar byte de cadena A y avanzar x0
+    ldrb    w3, [x1], #1        // Cargar byte de cadena B y avanzar x1
+    cmp     w2, w3              // ¿Son iguales los caracteres?
+    bne    strings_not_equal2   // Si no, las cadenas son diferentes
+    cbz     w2, strings_equal2   // Si es fin de cadena (0), son iguales
+    b       comparar_desigual_strings     // Repetir con siguiente carácter
+
+strings_equal2:
+    // Aquí entra si las cadenas son iguales
+    mov x0, #0
+    b       fin_string2
+
+strings_not_equal2:
+    // Aquí entra si son diferentes
+    mov x0, #1
+    b       fin_string2
+
+fin_string2:
+    ret
+    "},
+
+    {"comparar_desigual_rune", @"
+//---------------Aca se comparan dos Runes
+//Primer rune en x0
+//Segundo rune en x1
+//-----------Inicio de la funcion
+comparar_desigual_rune:
+    cmp    x0, x1              // ¿Son iguales los caracteres?
+    bne    rune_not_equal2   // Si no, las cadenas son diferentes
+
+rune_equal2:
+    // Aquí entra si las cadenas son iguales
+    mov x0, #0
+    b       fin_rune2
+
+rune_not_equal2:
+    // Aquí entra si son diferentes
+    mov x0, #1
+    b       fin_rune2
+
+fin_rune2:
+    ret
     "}
+
 
     };
 

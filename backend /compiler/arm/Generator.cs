@@ -447,6 +447,7 @@ public class ArmGenerator
         instrucciones.Add($"CMP {rd}, {rd1}");
     }
 
+    //-------------------------------Esta parte se utiliza para las operacion de (== | !=)
     public void BoolBranchIgualacion()
     {
         stdLib.Use("comparar_igual_int");
@@ -476,6 +477,38 @@ public class ArmGenerator
         stdLib.Use("comparar_igual_rune");
         instrucciones.Add($"BL comparar_igual_rune");
     }
+
+    public void BoolBranchDesigualacion_Int()
+    {
+        stdLib.Use("comparar_desigual_int");
+        instrucciones.Add($"BL comparar_desigual_int");
+    }
+
+    public void BoolBranchDesigualacion_Float()
+    {
+        stdLib.Use("comparar_desigual_float");
+        instrucciones.Add($"BL comparar_desigual_float");
+    }
+
+    public void BoolBranchDesigualacion_Bool()
+    {
+        stdLib.Use("comparar_desigual_bool");
+        instrucciones.Add($"BL comparar_desigual_bool");
+    }
+
+    public void BoolBranchDesigualacion_String()
+    {
+        stdLib.Use("comparar_desigual_strings");
+        instrucciones.Add($"BL comparar_desigual_strings");
+    }
+
+    public void BoolBranchDesigualacion_Rune()
+    {
+        stdLib.Use("comparar_desigual_rune");
+        instrucciones.Add($"BL comparar_desigual_rune");
+    }
+
+    //---------------------------------fin de las opreacionde---------------------------------------
 
 
     //Sobre escribimos la clase para convertir a string
