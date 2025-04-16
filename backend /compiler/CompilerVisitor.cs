@@ -264,7 +264,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
             //Esta es la parte de la suma:
             case (StackObject.StackObjectType.Int, "+", StackObject.StackObjectType.Int):
                 //Se realiza la suma ya que los valores ya se encuentran en los reguistros x0 y x1
-                c.Add(Register.X0, Register.X0, Register.X1);
+                c.Add(Register.X0, Register.X1, Register.X0);
                 //Ahora se vuelve a cargar al stack
                 c.Comment("Pushing resultados de la SUMA");
                 //Esto es a nievel de arm
@@ -277,7 +277,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 // Primero se convierte el valor del tipo int a float
                 c.Scvtf(Register.D1, Register.X1);
                 //Se realiza la suma entre valores de tipo float
-                c.Fadd(Register.D0, Register.D0, Register.D1);
+                c.Fadd(Register.D0, Register.D1, Register.D0);
                 c.Comment("Pushing resultados de la SUMA");
                 //Esto es a nievel de arm
                 c.Push(Register.D0);
@@ -287,7 +287,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 break;
             case (StackObject.StackObjectType.Float, "+", StackObject.StackObjectType.Float):
                 //Se realiza la suma entre valores de tipo float
-                c.Fadd(Register.D0, Register.D0, Register.D1);
+                c.Fadd(Register.D0, Register.D1, Register.D0);
                 c.Comment("Pushing resultados de la SUMA");
                 //Esto es a nievel de arm
                 c.Push(Register.D0);
@@ -299,7 +299,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 // Primero se convierte el valor del tipo int a float
                 c.Scvtf(Register.D0, Register.X0);
                 //Se realiza la suma entre valores de tipo float
-                c.Fadd(Register.D0, Register.D0, Register.D1);
+                c.Fadd(Register.D0, Register.D1, Register.D0);
                 c.Comment("Pushing resultados de la SUMA");
                 //Esto es a nievel de arm
                 c.Push(Register.D0);
@@ -320,7 +320,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
             //----------------------Esta es la parte de la resta-------------------------------
             case (StackObject.StackObjectType.Int, "-", StackObject.StackObjectType.Int):
                 //Se realiza la resta ya que los valores ya se encuentran en los reguistros x0 y x1
-                c.Sub(Register.X0, Register.X0, Register.X1);
+                c.Sub(Register.X0, Register.X1, Register.X0);
                 //Ahora se vuelve a cargar al stack
                 c.Comment("Pushing resultados de la RESTA");
                 //Esto es a nievel de arm
@@ -330,13 +330,38 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.PushObject(c.CloneObject(left));
                 break;
             case (StackObject.StackObjectType.Int, "-", StackObject.StackObjectType.Float):
-                // lógica para string + string (concatenación)
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D1, Register.X1);
+                //Se realiza la suma entre valores de tipo float
+                c.Fsub(Register.D0, Register.D1, Register.D0);
+                c.Comment("Pushing resultados de la RESTA");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(left));
                 break;
             case (StackObject.StackObjectType.Float, "-", StackObject.StackObjectType.Float):
-                // lógica para int - int
+                //Se realiza la suma entre valores de tipo float
+                c.Fsub(Register.D0, Register.D1, Register.D0);
+                c.Comment("Pushing resultados de la RESTA");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(left));
                 break;
             case (StackObject.StackObjectType.Float, "-", StackObject.StackObjectType.Int):
-                // lógica para int - int
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D0, Register.X0);
+                //Se realiza la suma entre valores de tipo float
+                c.Fsub(Register.D0, Register.D1, Register.D0);
+                c.Comment("Pushing resultados de la RESTA");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(right));
                 break;
         }
 

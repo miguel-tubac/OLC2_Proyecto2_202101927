@@ -252,6 +252,11 @@ public class ArmGenerator
         instrucciones.Add($"FADD {rd}, {rs1}, {rs2}");
     }
 
+    public void Fsub(string rd, string rs1, string rs2)
+    {
+        instrucciones.Add($"FSUB {rd}, {rs1}, {rs2}");
+    }
+
     public void Sub(string rd, string rs1, string rs2)
     {
         instrucciones.Add($"SUB {rd}, {rs1}, {rs2}");
