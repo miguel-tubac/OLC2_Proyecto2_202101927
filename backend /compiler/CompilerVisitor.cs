@@ -255,28 +255,76 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         Visit(context.expr(1)); //Visit 2: TOP --> [2, 1]
 
         //Se obtinen los valores de la pila
-        var right = c.PopObject(Register.X1);
         var left = c.PopObject(Register.X0);
+        var right = c.PopObject(Register.X1);
 
-        //TODO: aca se manejan los tipos
-        switch (right.Type, operation, left.Type){
-
+        //Aca se manejan los tipos
+        switch ((right.Type, operation, left.Type))
+        {
+            //Esta es la parte de la suma:
+            case (StackObject.StackObjectType.Int, "+", StackObject.StackObjectType.Int):
+                //Se realiza la suma ya que los valores ya se encuentran en los reguistros x0 y x1
+                c.Add(Register.X0, Register.X0, Register.X1);
+                //Ahora se vuelve a cargar al stack
+                c.Comment("Pushing resultados de la SUMA");
+                //Esto es a nievel de arm
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(left));
+                break;
+            case (StackObject.StackObjectType.Int, "+", StackObject.StackObjectType.Float):
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D1, Register.X1);
+                //Se realiza la suma entre valores de tipo float
+                c.Fadd(Register.D0, Register.D0, Register.D1);
+                c.Comment("Pushing resultados de la SUMA");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(left));
+                break;
+            case (StackObject.StackObjectType.Float, "+", StackObject.StackObjectType.Float):
+                //Se realiza la suma entre valores de tipo float
+                c.Fadd(Register.D0, Register.D0, Register.D1);
+                c.Comment("Pushing resultados de la SUMA");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(left));
+                break;
+            case (StackObject.StackObjectType.Float, "+", StackObject.StackObjectType.Int):
+                // lógica para int - int
+                
+                break;
+            case (StackObject.StackObjectType.String, "+", StackObject.StackObjectType.String):
+                // lógica para int - int
+                break;
+            //----------------------Esta es la parte de la resta-------------------------------
+            case (StackObject.StackObjectType.Int, "-", StackObject.StackObjectType.Int):
+                //Se realiza la resta ya que los valores ya se encuentran en los reguistros x0 y x1
+                c.Sub(Register.X0, Register.X0, Register.X1);
+                //Ahora se vuelve a cargar al stack
+                c.Comment("Pushing resultados de la RESTA");
+                //Esto es a nievel de arm
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //En este caso se clona el left
+                c.PushObject(c.CloneObject(left));
+                break;
+            case (StackObject.StackObjectType.Int, "-", StackObject.StackObjectType.Float):
+                // lógica para string + string (concatenación)
+                break;
+            case (StackObject.StackObjectType.Float, "-", StackObject.StackObjectType.Float):
+                // lógica para int - int
+                break;
+            case (StackObject.StackObjectType.Float, "-", StackObject.StackObjectType.Int):
+                // lógica para int - int
+                break;
         }
 
-        if (operation == "+"){
-            c.Add(Register.X0, Register.X0, Register.X1);
-        }
-        else if (operation == "-"){
-            c.Sub(Register.X0, Register.X0, Register.X1);
-        }
-
-        //Ahora se vuelve a cargar al stack
-        c.Comment("Pushing resultados");
-        //Esto es a nievel de arm
-        c.Push(Register.X0);
-        //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-        //En este caso se clona el left
-        c.PushObject(c.CloneObject(left));
         return null;
     }
 
@@ -301,11 +349,16 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         var value = context.FLOAT().GetText();
         c.Comment("Flotante: "+value);
 
+        long ieee754bits = BitConverter.DoubleToInt64Bits(float.Parse(value, CultureInfo.InvariantCulture));
+        //System.Console.WriteLine($"IEEE 754 (double) as long: {ieee754bits}");
+        //System.Console.WriteLine($"Hex: 0x{ieee754bits:X16}");
+
+        //Esta cadena:  insertar directamente ese número como constante binaria 
+        string cadena = $"0x{ieee754bits:X16}";
         //Se obtiene un objeto por defecto de tipo Flotante
         var floatObject = c.FloatObject();
-        c.PushConstant(floatObject, value);
-        //Esto convierte el valor a punto flotante
-        //c.PushConstant(floatObject, float.Parse(value, CultureInfo.InvariantCulture));
+        c.PushConstant(floatObject, cadena);
+        
         c.Comment("Final de la lectura del float");
         return null;
     }

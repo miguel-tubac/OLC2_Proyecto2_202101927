@@ -20,5 +20,30 @@ aarch64-linux-gnu-ld -o pruebas pruebas.o
 
 
 ****************Regustros reservados***********************************
-x14
-x10
+x10 -> HP
+
+
+****************Esto es para Debugear**********************************
+
+1.------Solo agregar el -g
+aarch64-linux-gnu-as -g -o pruebas.o pruebas.s
+aarch64-linux-gnu-ld -g -o pruebas pruebas.o
+
+2.------Ejecutamos:
+qemu-aarch64 -g 1234 ./pruebas
+
+3.------En otra terminal se jecuta:
+gdb-multiarch -q --nh \
+-ex 'set architecture aarch64' \
+-ex 'file pruebas' \
+-ex 'target remote localhost:1234' \
+-ex 'layout split' \
+-ex 'layout regs'
+
+4.------Comandos (estando en la otra terminal):
+break <nombre_de_un_metodo>  
+continue
+next
+stepi
+
+exit

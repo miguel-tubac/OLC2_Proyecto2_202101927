@@ -41,32 +41,21 @@ public class ArmGenerator
                 Push(Register.X0);
                 break;
             case StackObject.StackObjectType.Float:
-                //TODO: pendiente de implementar
-                List<byte> stringArray = Utils.StringTo1ByteArray((string)value);
-                //Mantenemos la referencia al stack
-                //Push(Register.HP);
-                //Se cargan los valores
-                for (int i = 0; i < stringArray.Count; i++){
-                    var charCode = stringArray[i];
-                    Comment($"Pushing char {charCode} to heap - ({(char) charCode})");
-                    //Esto nos permite utilizar el strore bayte solo con los de w
-                    Mov("w0", charCode);
-                    Strb("w0", Register.HP);
-                    //Aca se van metiendo caracter por caracter
-                    Mov(Register.X0, 1);
-                    Add(Register.HP, Register.HP, Register.X0);
-                }
-                //Convertimos a float el string
-                Comment("Conversion de cadena a Float");
-                ConvertToFloat(Register.HP);
+                //Se carga el valor hexadecimal al regusitro x0
+                instrucciones.Add($"LDR x0, ={(string)value}");
+                //Movemos el valor al reguistro d0
+                Fmov(Register.D0, Register.X0);
                 //Cargamos a la pila el valor numerico de doble
-                Push("d0");
+                Push(Register.D0);
                 Comment("Fin de conversion de cadena a Float");
                 break;
             case StackObject.StackObjectType.String:
+                //Se carga la referencia de data
+                ADR(Register.HP, "heap");
+                //Esto obtiene la lista de los caracteres
                 List<byte> stringArray2 = Utils.StringTo1ByteArray((string)value);
                 //Mantenemos la referencia al stack
-                Push(Register.X14);
+                Push(Register.HP);
                 //Se cargan los valores
                 for (int i = 0; i < stringArray2.Count; i++){
                     var charCode = stringArray2[i];
@@ -81,10 +70,10 @@ public class ArmGenerator
                     }
                     //Esto nos permite utilizar el strore bayte solo con los de w
                     Mov("w0", charCode);
-                    Strb("w0", Register.X14);
+                    Strb("w0", Register.HP);
                     //Aca se van metiendo caracter por caracter
                     Mov(Register.X0, 1);
-                    Add(Register.X14, Register.X14, Register.X0);
+                    Add(Register.HP, Register.HP, Register.X0);
                 }
                 break;
             case StackObject.StackObjectType.Rune:
@@ -106,7 +95,9 @@ public class ArmGenerator
 
         //Remueve del reguistro destino
         if(obj.Type == StackObject.StackObjectType.Float){
-            Pop("d0");
+            //Aca se evalua si el registro es de tipo float y se obtiene el correspondiante
+            string destino = Utils.ObtenertDestino(rd);
+            Pop(destino);
         }else{
             Pop(rd);
         }
@@ -255,6 +246,12 @@ public class ArmGenerator
         instrucciones.Add($"ADD {rd}, {rs1}, {rs2}");
     }
 
+    //Esto es para la suma de float
+    public void Fadd(string rd, string rs1, string rs2)
+    {
+        instrucciones.Add($"FADD {rd}, {rs1}, {rs2}");
+    }
+
     public void Sub(string rd, string rs1, string rs2)
     {
         instrucciones.Add($"SUB {rd}, {rs1}, {rs2}");
@@ -274,6 +271,12 @@ public class ArmGenerator
     public void Addi(string rd, string rs1, int imm)
     {
         instrucciones.Add($"ADDI {rd}, {rs1}, #{imm}");
+    }
+
+    //Esto es para convertir un numero int a float
+    public void Scvtf(string rd, string rs1)
+    {
+        instrucciones.Add($"SCVTF {rd}, {rs1}");
     }
 
     //Para cargar byte por byte
@@ -298,6 +301,10 @@ public class ArmGenerator
         instrucciones.Add($"MOV {rd}, {imm}");
     }
 
+    public void Fmov(string rd, string rd1)
+    {
+        instrucciones.Add($"FMOV {rd}, {rd1}");
+    }
     public void Push(string rs)
     {
         instrucciones.Add($"STR {rs}, [sp, #-8]!");
@@ -376,13 +383,20 @@ public class ArmGenerator
     //Para negar valores enteros
     public void NegarInt(string rd)
     {
-        instrucciones.Add($"neg x0, {rd}");
+        instrucciones.Add($"NEG x0, {rd}");
     }
 
     //Para negar valores dobles
     public void NegarFloat(string rd)
     {
-        instrucciones.Add($"fneg d0, {rd}");
+        instrucciones.Add($"FNEG d0, {rd}");
+    }
+
+    //Para cargar una etiqueta a un reguistro
+    public void ADR(string rd, string name)
+    {
+        Comment("\t//Esto es para leer los strings");
+        instrucciones.Add($"ADR {rd}, {name}");
     }
 
     //Sobre escribimos la clase para convertir a string
@@ -393,10 +407,8 @@ public class ArmGenerator
         sb.AppendLine(".data");
         sb.AppendLine("heap: .space 4096");//se reserva un espacion para aspectos variables Bytes
         sb.AppendLine("//Esto lo voy a usar para Float");
-        sb.AppendLine("heap2: .space 4096");
         sb.AppendLine("newline: .ascii \"\\n\"");//Esto es para ageregar un salto de linea luego de imprimir texto
         sb.AppendLine("zero:           .double 0.0");
-        sb.AppendLine("one:            .double 1.0");
         sb.AppendLine("ten:            .double 10.0");
         sb.AppendLine("neg_one:        .double -1.0");
         sb.AppendLine("//Esta es para imprimir dobles");
@@ -412,11 +424,6 @@ public class ArmGenerator
         sb.AppendLine("\n.text");
         sb.AppendLine(".global _start");
         sb.AppendLine("_start:");
-        sb.AppendLine("\t//Esta es para leer los strings");
-        sb.AppendLine("\tadr x14, heap");
-        sb.AppendLine("\t//Esta es para leer los Float");
-        sb.AppendLine("\tadrp x10, heap2");
-        sb.AppendLine("\tadd x10, x10, :lo12:heap2");
 
         //Se agrega el final del programa
         EndProgram();
