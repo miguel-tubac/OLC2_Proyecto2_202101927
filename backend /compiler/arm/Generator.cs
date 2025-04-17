@@ -582,6 +582,12 @@ public class ArmGenerator
         stdLib.Use("comparar_menorIgual_rune");
         instrucciones.Add($"BL comparar_menorIgual_rune");
     }
+    //---------------------------------Fin de las operaciones
+
+    public void And(string rd, string rd1, string rd2)
+    {
+        instrucciones.Add($"AND {rd}, {rd1}, {rd2}");
+    }
 
 
 
