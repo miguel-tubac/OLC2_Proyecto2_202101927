@@ -1118,12 +1118,52 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     // VisitNegacion: op = '!' expr 
     public override Object VisitNegacion(LanguageParser.NegacionContext context)
     {
+        c.Comment("Operacion Logica Not(!)");
+        //Se visitan las dos expresiones por ende ya estan en la pila sp
+        Visit(context.expr()); //Visit 1: TOP --> [1]
+
+        //Se obtinen los valores de la pila
+        var left = c.PopObject(Register.X0);
+
+        //Se avaluan los tipos:
+        switch(left.Type){
+            case StackObject.StackObjectType.Bool:
+                c.Not(Register.X0, Register.X1, Register.X0);
+                //Ahora se vuelve a cargar al stack
+                c.Comment("Pushing resultados de Not(!)");
+                //Esto es a nievel de arm
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                c.PushObject(c.CloneObject(left));
+                break;
+        }
         return null;
     }
 
     // VisitOr: expr op = '||' expr  
     public override Object VisitOr(LanguageParser.OrContext context)
     {
+        c.Comment("Operacion Logica Or(||)");
+        //Se visitan las dos expresiones por ende ya estan en la pila sp
+        Visit(context.expr(0)); //Visit 1: TOP --> [1]
+        Visit(context.expr(1)); //Visit 2: TOP --> [2, 1]
+
+        //Se obtinen los valores de la pila
+        var left = c.PopObject(Register.X0);
+        var right = c.PopObject(Register.X1);
+
+        //Se avaluan los tipos:
+        switch((left.Type, right.Type)){
+            case (StackObject.StackObjectType.Bool, StackObject.StackObjectType.Bool):
+                c.Or(Register.X0, Register.X1, Register.X0);
+                //Ahora se vuelve a cargar al stack
+                c.Comment("Pushing resultados de OR(||)");
+                //Esto es a nievel de arm
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                c.PushObject(c.CloneObject(left));
+                break;
+        }
         return null;
     }
 

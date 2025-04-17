@@ -589,6 +589,16 @@ public class ArmGenerator
         instrucciones.Add($"AND {rd}, {rd1}, {rd2}");
     }
 
+    public void Or(string rd, string rd1, string rd2)
+    {
+        instrucciones.Add($"ORR {rd}, {rd1}, {rd2}");
+    }
+
+    public void Not(string rd, string rd1, string rd2)
+    {
+        Mov(Register.X1, 1);
+        instrucciones.Add($"EOR {rd}, {rd1}, {rd2}");
+    }
 
 
     //Sobre escribimos la clase para convertir a string

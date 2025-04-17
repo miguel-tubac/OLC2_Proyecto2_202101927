@@ -24,17 +24,14 @@ heap_used:  .quad 0
 _start:
 	ADR x10, heap
 	// Print statement
-	// Operacion Logica And(&&)
-	// Cargando valor bool: true
-	MOV x0, 1
-	STR x0, [sp, #-8]!
-	// Cargando valor bool: true
-	MOV x0, 1
+	// Operacion Logica Not(!)
+	// Cargando valor bool: false
+	MOV x0, 0
 	STR x0, [sp, #-8]!
 	LDR x0, [sp], #8
-	LDR x1, [sp], #8
-	AND x0, x1, x0
-	// Pushing resultados de AND(&&)
+	MOV x1, 1
+	EOR x0, x1, x0
+	// Pushing resultados de Not(!)
 	STR x0, [sp, #-8]!
 	LDR x0, [sp], #8
 	MOV x0, x0
