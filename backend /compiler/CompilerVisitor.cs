@@ -1195,23 +1195,41 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         return null;
     }
 
-    //VisitIfstmt
-    public override Object VisitIfstat(LanguageParser.IfstatContext context){
+    //VisitIfstmt: 'if' expr  stmt  ('else'  ( stmt ) )? 
+    public override Object VisitIfstat(LanguageParser.IfstatContext context)
+    {
+        c.Comment("Sentencia IF - ELSE");
+        //Se visitan las dos expresiones por ende ya estan en la pila sp
+        Visit(context.expr()); //Visit 1: TOP --> [1]
+
+        //Se obtinen los valores de la pila
+        var left = c.PopObject(Register.X0);
+
+        if(){
+            Visit(context.stmt(0));
+        }
+        else if (context.stmt().Length > 1){
+            Visit(context.stmt(1));
+        }
+
         return null;
     }    
 
 
     //VisitWhileStmt    'for' expr stmt                                   # WhileStmt
-    public override Object VisitWhileStmt(LanguageParser.WhileStmtContext context){
+    public override Object VisitWhileStmt(LanguageParser.WhileStmtContext context)
+    {
         return null;
     }
 
     //VisitInstrucSwitch
-    public override Object VisitInstrucSwitch(LanguageParser.InstrucSwitchContext context){
+    public override Object VisitInstrucSwitch(LanguageParser.InstrucSwitchContext context)
+    {
         return null;
     }
     //VisitInstrucCase
-    public override Object VisitInstrucCase(LanguageParser.InstrucCaseContext context){
+    public override Object VisitInstrucCase(LanguageParser.InstrucCaseContext context)
+    {
         return null;
     }
     //VisitInstrucDefault

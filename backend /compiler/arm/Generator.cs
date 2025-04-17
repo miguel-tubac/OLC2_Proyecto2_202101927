@@ -353,6 +353,7 @@ public class ArmGenerator
 
     public void EndProgram()
     {
+        Comment("Finalizando programa");
         Mov(Register.X0, 0);
         Mov(Register.X8, 93);//llamada al sistema para salir
         Svc(); //Finaliza
