@@ -18,6 +18,18 @@ public class ArmGenerator
     private List<StackObject> stack = new List<StackObject>();
     private int depth = 0;
 
+    /*-------Generar nobres para las ramas------------*/
+    private int labelCounter = 0;
+    //Aca se genera la etiqueta
+    public String GetLabel()
+    {
+        return $"L{labelCounter++}";
+    }
+    //Aca se agrega la etiqueta
+    public void SetLabel(string label){
+        instrucciones.Add($"{label}:");
+    }
+
     /* ----- stack operaciones ----*/
     public void PushObject(StackObject obj)
     {
@@ -101,6 +113,18 @@ public class ArmGenerator
         }else{
             Pop(rd);
         }
+        //Retorno el objeto por si se desea usar
+        return obj;
+    }
+
+    public StackObject PopObject2(string rd)
+    {
+        var obj = stack.Last();
+        stack.RemoveAt(stack.Count -1);
+
+        
+        Pop(rd);
+        
         //Retorno el objeto por si se desea usar
         return obj;
     }
@@ -359,6 +383,19 @@ public class ArmGenerator
         Svc(); //Finaliza
     }
 
+    public void PrintNewLine()
+    {
+        stdLib.Use("print_new_line");
+        instrucciones.Add($"BL print_new_line");
+    }
+
+    public void PrintEspace()
+    {
+        stdLib.Use("print_space");
+        instrucciones.Add($"BL print_space");
+    }
+
+
     public void PrintInteger(string rs)
     {
         stdLib.Use("print_integer");
@@ -601,6 +638,17 @@ public class ArmGenerator
         instrucciones.Add($"EOR {rd}, {rd1}, {rd2}");
     }
 
+    //------------------Saltos a etiquetas
+    public void B(string label)
+    {
+        instrucciones.Add($"B {label}");
+    }
+
+    //Sireve para comparar con el valor cero
+    public void Cbz(string rs, string label){
+        instrucciones.Add($"CBZ {rs}, {label}");
+    }
+
 
     //Sobre escribimos la clase para convertir a string
     public override string ToString()
@@ -610,7 +658,6 @@ public class ArmGenerator
         sb.AppendLine(".data");
         sb.AppendLine("heap: .space 4096");//se reserva un espacion para aspectos variables Bytes
         sb.AppendLine("//Esto lo voy a usar para Float");
-        sb.AppendLine("newline: .ascii \"\\n\"");//Esto es para ageregar un salto de linea luego de imprimir texto
         sb.AppendLine("zero:           .double 0.0");
         sb.AppendLine("ten:            .double 10.0");
         sb.AppendLine("neg_one:        .double -1.0");
@@ -619,18 +666,22 @@ public class ArmGenerator
         sb.AppendLine("round_const:    .double 0.0000005 ");
         sb.AppendLine("half:           .double 0.5 ");
         sb.AppendLine("//Esta es para imprimir Bool");
-        sb.AppendLine("msg_true:   .asciz \"true\\n\"");
-        sb.AppendLine("msg_false:  .asciz \"false\\n\"");
+        sb.AppendLine("msg_true:   .asciz \"true\"");
+        sb.AppendLine("msg_false:  .asciz \"false\"");
         sb.AppendLine("//Esta es para imprimir Int");
         sb.AppendLine("minus_sign:  .ascii \"-\"");
         sb.AppendLine("//Esta es para concatenar Strings");
         sb.AppendLine("heap_start: .quad 0 ");
         sb.AppendLine("heap_size:  .quad 4096 ");
         sb.AppendLine("heap_used:  .quad 0");
+        sb.AppendLine("//Esto es para imprimir en la consola");
+        sb.AppendLine("space_char: .ascii \" \" ");
+        sb.AppendLine("newline: .ascii \"\\n\"");
         
         sb.AppendLine("\n.text");
         sb.AppendLine(".global _start");
         sb.AppendLine("_start:");
+        sb.AppendLine("\t//Esto es para leer Strings");
         sb.AppendLine("\tADR x10, heap");
 
         //Se agrega el final del programa

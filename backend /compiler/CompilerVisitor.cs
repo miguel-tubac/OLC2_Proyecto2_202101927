@@ -80,8 +80,13 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                     break;
                 case StackObject.StackObjectType.Float:
                     c.Comment("Ingresando al valor por defecto float");
+                    //Se convierte el valor al estandar EEE
+                    long ieee754bits = BitConverter.DoubleToInt64Bits(float.Parse("0.0", CultureInfo.InvariantCulture));
+
+                    //Esta cadena:  insertar directamente ese número como constante binaria 
+                    string cadena = $"0x{ieee754bits:X16}";
                     //Aca se pushe a la pila virtual y tambien a la de arm
-                    c.PushConstant(objTipo, "0.0");
+                    c.PushConstant(objTipo, cadena);
                     //Aca se asocia el valor al nombre en el stack virtual
                     c.TagObject(id);
                     break;
@@ -179,30 +184,37 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     public override Object VisitPrinStmt(LanguageParser.PrinStmtContext context)
     {
         c.Comment("Print statement");
-        foreach(var val in context.expr())
-        {
+        foreach(var val in context.expr()){
             Visit(val);
             var value = c.PopObject(Register.X0);
             //Llamamos a la funcion de imprimir
             switch (value.Type){
                 case StackObject.StackObjectType.Int:
                     c.PrintInteger(Register.X0);
+                    c.PrintEspace();
                     break;
                 case StackObject.StackObjectType.Float:
-                    c.PrintFloat("d0");
+                    c.PrintFloat(Register.D0);
+                    c.PrintEspace();
                     break;
                 case StackObject.StackObjectType.String:
                     c.PrintString(Register.X0);
+                    c.PrintEspace();
                     break;
                 case StackObject.StackObjectType.Bool:
                     c.PrintBool(Register.X0);
+                    c.PrintEspace();
                     break;
                 case StackObject.StackObjectType.Rune:
                     c.PrintRune(Register.X0);
+                    c.PrintEspace();
                     break;
             }
             
         }
+        //Se agrega el salto de linea
+        c.PrintNewLine();
+
         return null;
     }
 
@@ -543,10 +555,11 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         string rawText = context.STRING().GetText();
         string processedText = SecuanciasEscape.UnescapeString(rawText);//Procesa las secuancias de escape
         
+        rawText = rawText.Replace("\n", "").Replace("\r", "");
         if (processedText.Equals("\n")){
-            c.Comment("String constante: \\\\n");
+            c.Comment("String constante: \\\\\\n");
         }else{
-            c.Comment("String constante: "+processedText);
+            c.Comment("String constante: "+rawText);
         }
         //Se generar un objeto de tipo string
         var stringObject = c.StringObject();
@@ -824,12 +837,14 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         if(assigne is LanguageParser.IdentifaiderContext idContext)
         {
             string varName = idContext.ID().GetText();
+            //Le qutamos saltos de lineas si es conveniente
             c.Comment("Assignacion a la variable: "+varName);
             //Esto dejo el valor en el stack
             Visit(context.expr(1));
 
+            c.Comment("Aca se iguala la exprecion expr '=' expr");
             //Esto obtiene la copia del objeto}
-            var valueObject = c.PopObject(Register.X0);
+            var valueObject = c.PopObject2(Register.X0);
             //Aca obtenemos de cuanto debemos realizar el ofsset para encontrar el valor
             var (offset, varObject) = c.GetObject(varName);
 
@@ -1204,12 +1219,37 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
 
         //Se obtinen los valores de la pila
         var left = c.PopObject(Register.X0);
+        
+        //Se obtiene la validacion si tiene mas else if
+        var hasElse = context.stmt().Length > 1;
 
-        if(){
+        //Se compara si tiene mas datos
+        if(hasElse){
+            //Se obtiene las etiquetas donde se realizaran los saltos
+            var elseLabel = c.GetLabel();
+            var endLabel = c.GetLabel();
+
+            //Se compar si es falso
+            c.Cbz(Register.X0, elseLabel);//if condicion is false, salta a elseLabel
+            //Si no visita las intrucciones
             Visit(context.stmt(0));
-        }
-        else if (context.stmt().Length > 1){
+            //Saltamos a la finalizacion del if
+            c.B(endLabel);
+            //Se coloca las etiquetas en el codigo general
+            c.SetLabel(elseLabel);
+            //Se visita el cuerpo del else
             Visit(context.stmt(1));
+            //Se coloca la etiqueta de else al codigo general
+            c.SetLabel(endLabel);
+        }
+        else{
+            var endLabel = c.GetLabel();
+
+            c.Cbz(Register.X0, endLabel);
+            //Si no visita las intrucciones
+            Visit(context.stmt(0));
+            //Se coloca la etiqueta de else al codigo general
+            c.SetLabel(endLabel);
         }
 
         return null;

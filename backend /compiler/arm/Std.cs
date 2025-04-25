@@ -105,12 +105,7 @@ reverse_loop:
     add x27, x27, #1           // Increment start index
     b reverse_loop             // Continue reversing
     
-print_result:
-    // Add newline
-    mov w24, #10               // Newline character
-    strb w24, [x22, x23]       // Add to end of buffer
-    add x23, x23, #1           // Increment counter
-    
+print_result:    
     // Print the result
     mov x0, #1                 // fd = 1 (stdout)
     mov x1, x22                // Buffer address
@@ -167,13 +162,6 @@ print_loop:
     b       print_loop
     
 print_done:
-    // Print newline character
-    ldr     x1, =newline        // Address of newline character
-    mov     x0, #1              // File descriptor: stdout
-    mov     x2, #1              // Length of 1 byte
-    mov     x8, #64             // syscall: write
-    svc     #0
-
     // Restore saved registers
     ldp     x19, x20, [sp], #16
     ldp     x29, x30, [sp], #16
@@ -305,10 +293,10 @@ store_decimal:
 
 decimal_done:
     // Añadir salto de línea
-    adrp x12, newline
-    add x12, x12, :lo12:newline
-    ldrb w12, [x12]
-    strb w12, [x1], #1
+    //adrp x12, newline
+    //add x12, x12, :lo12:newline
+    //ldrb w12, [x12]
+    //strb w12, [x1], #1
     
     // Calcular longitud
     sub x2, x1, x20
@@ -395,13 +383,6 @@ print_char:
     mov x8, #64           // syscall write
     svc #0
 
-    // Print newline character
-    ldr     x1, =newline        // Address of newline character
-    mov     x0, #1              // File descriptor: stdout
-    mov     x2, #1              // Length of 1 byte
-    mov     x8, #64             // syscall: write
-    svc     #0
-
     add sp, sp, #16       // Liberar el stack
 
     // Restore registers
@@ -411,6 +392,30 @@ print_char:
     ldp x21, x22, [sp], #16
     ldp x19, x20, [sp], #16
     ldp x29, x30, [sp], #16
+    ret
+    "},
+
+    {"print_new_line", @"
+print_new_line:
+    // Print newline character
+    ldr     x1, =newline        // Address of newline character
+    mov     x0, #1              // File descriptor: stdout
+    mov     x2, #1              // Length of 1 byte
+    mov     x8, #64             // syscall: write
+    svc     #0
+
+    ret
+    "},
+
+    {"print_space", @"
+print_space:
+    // Print space character (ASCII 32)
+    ldr     x1, =space_char     // Dirección del carácter espacio
+    mov     x0, #1              // File descriptor: stdout
+    mov     x2, #1              // Longitud: 1 byte
+    mov     x8, #64             // syscall: write
+    svc     #0
+
     ret
     "},
 
