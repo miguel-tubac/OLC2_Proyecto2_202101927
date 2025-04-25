@@ -1307,28 +1307,93 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         return null;
     }
     //VisitInstrucDefault
-    public override Object VisitInstrucDefault(LanguageParser.InstrucDefaultContext context){
+    public override Object VisitInstrucDefault(LanguageParser.InstrucDefaultContext context)
+    {
         return null;
     }
 
 
-    //VisitForStmt
-    public override Object VisitForStmt(LanguageParser.ForStmtContext context){
+    //VisitForStmt 'for' forInit expr ';' expr stmt 
+    public override Object VisitForStmt(LanguageParser.ForStmtContext context)
+    {
+        //Se generan las etoquetas
+        var startLabel = c.GetLabel();
+        var endLabel = c.GetLabel();
+        var incrementLabel = c.GetLabel();
+
+        //Se guardan las referencias
+        var prevContinueLabel = continueLabel;
+        var prevBreakLabel = breakLabel;
+        continueLabel = incrementLabel;
+        breakLabel = endLabel;
+
+        //Aca empiza el cuerpo del for
+        c.Comment("For - Stament");
+        //Se genera un nuevo entorno
+        c.NewScope();
+
+        //Visitamos la inicializacion
+        Visit(context.forInit());
+        //Se coloca la etiqueta de inicio del bucle
+        c.SetLabel(startLabel);
+        //Se visita la primera exprecion
+        Visit(context.expr(0));
+        //Se obtiene la condicion
+        c.PopObject(Register.X0);
+        //Se compara la condicion del bucle for 0 false, 1 true
+        c.Cbz(Register.X0, endLabel);
+        //Visitamos el cuerpo del for
+        Visit(context.stmt());
+        //Se evalua el increment por si hay algun continue
+        c.SetLabel(incrementLabel);
+        //Esto es el incremento o la condicion del for
+        Visit(context.expr(1));
+        //Volvemos a iniciar el bucle
+        c.B(startLabel);
+        //Por si necesitamos salir se agrega la etiqueta de salida
+        c.SetLabel(endLabel);
+
+        c.Comment("Fin del Bulce - For");
+
+        //Ahora se tiene que remover el entorno que se creo
+        var bytesToRemove = c.endScope();
+        if (bytesToRemove > 0){
+            c.Comment("Removiendo "+bytesToRemove+" bytes del stack");
+            c.Mov(Register.X0, bytesToRemove);
+            c.Add(Register.SP, Register.SP, Register.X0);//Ajusta el puntero del stack
+            c.Comment("Puntero del Stack Ajustado");
+        }
+
+        //Por ultimo restauramos los nombres de las etiquetas
+        continueLabel = prevContinueLabel;
+        breakLabel = prevBreakLabel;
+
         return null;
     }
 
     //VisitBreakStmt
-    public override Object VisitBreakStmt(LanguageParser.BreakStmtContext context){
+    public override Object VisitBreakStmt(LanguageParser.BreakStmtContext context)
+    {
+        c.Comment("Break - statement");
+        if (breakLabel != null){
+            c.B(breakLabel);
+        }
         return null;
     }
 
     //VisitContinueStmt
-    public override Object VisitContinueStmt(LanguageParser.ContinueStmtContext context){
+    public override Object VisitContinueStmt(LanguageParser.ContinueStmtContext context)
+    {
+        c.Comment("Continue - statement");
+        if (continueLabel != null){
+            c.B(continueLabel);
+        }
         return null;
     }
 
     //VisitReturnStmt
-    public override Object VisitReturnStmt(LanguageParser.ReturnStmtContext context){
+    public override Object VisitReturnStmt(LanguageParser.ReturnStmtContext context)
+    {
         return null;
     }
 
