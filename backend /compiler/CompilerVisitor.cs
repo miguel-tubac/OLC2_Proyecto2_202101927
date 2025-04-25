@@ -1417,6 +1417,67 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     //VisitAumento_Uno     ID '++'
     public override Object VisitAumento_Uno(LanguageParser.Aumento_UnoContext context)
     {   
+        c.Comment("AUMENTO operacion (++)");
+        var id = context.ID().GetText();
+        
+        //-------Esto es para el ID-----------------------------------
+        //Ahora calcular cuanto me tengo que mover relativo a la variable en el stack
+        var (offset, obj) = c.GetObject(id);
+
+        //Aca se obtiene la direccion
+        c.Mov(Register.X0, offset);
+        c.Add(Register.X0, Register.SP, Register.X0);
+
+        if (obj.Type == StackObject.StackObjectType.Float){
+            //Aca se consigue hace una copia del valor
+            c.Ldr(Register.D0, Register.X0);
+        }else{
+            //Aca se consigue hace una copia del valor
+            c.Ldr(Register.X0, Register.X0);
+        }
+
+        //Aca se manejan los tipos
+        //Objeto id = x0, d0 
+        switch (obj.Type)
+        {
+            case StackObject.StackObjectType.Int:
+                c.Comment("Se incrementa en uno la varible: "+id);
+                //Se mueve el valor de 1 al reguistro x1
+                c.Mov(Register.X1, 1);
+                //Se realiza la suma ya que los valores ya se encuentran en los reguistros x0 y x1
+                c.Add(Register.X0, Register.X0, Register.X1);
+                //Ahora se vuelve a cargar al stack
+                c.Comment("Pushing resultados de (++)");
+                //Esto es a nievel de arm
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //Aca se carga a la pila virtual y no necesitamos el valor del id
+                c.PushObject(c.CloneObject(obj));
+                //Esto es a nievel de arm
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                c.PushObject(c.CloneObject(obj));
+                break;
+            case StackObject.StackObjectType.Float:
+                c.Comment("Se realiza la suma de uno la varible: "+id);
+                //Se mueve el valor de 1 al reguistro x1
+                c.Mov(Register.X1, 1);
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D1, Register.X1);
+                //Se realiza la suma entre valores de tipo float
+                c.Fadd(Register.D0, Register.D0, Register.D1);
+                c.Comment("Pushing resultados de (++)");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                c.PushObject(c.CloneObject(obj));
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                c.PushObject(c.CloneObject(obj));
+                break;
+        }
+
         return null;
     }
 
@@ -1424,6 +1485,67 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     //VisitDecreme_Uno     ID '--'
     public override Object VisitDecreme_Uno(LanguageParser.Decreme_UnoContext context)
     {   
+        c.Comment("DECREMENTO operacion (--)");
+        var id = context.ID().GetText();
+        
+        //-------Esto es para el ID-----------------------------------
+        //Ahora calcular cuanto me tengo que mover relativo a la variable en el stack
+        var (offset, obj) = c.GetObject(id);
+
+        //Aca se obtiene la direccion
+        c.Mov(Register.X0, offset);
+        c.Add(Register.X0, Register.SP, Register.X0);
+
+        if (obj.Type == StackObject.StackObjectType.Float){
+            //Aca se consigue hace una copia del valor
+            c.Ldr(Register.D0, Register.X0);
+        }else{
+            //Aca se consigue hace una copia del valor
+            c.Ldr(Register.X0, Register.X0);
+        }
+
+        //Aca se manejan los tipos
+        //Objeto id = x0, d0 
+        switch (obj.Type)
+        {
+            case StackObject.StackObjectType.Int:
+                c.Comment("Se decrementa en uno la varible: "+id);
+                //Se mueve el valor de 1 al reguistro x1
+                c.Mov(Register.X1, 1);
+                //Se realiza la suma ya que los valores ya se encuentran en los reguistros x0 y x1
+                c.Sub(Register.X0, Register.X0, Register.X1);
+                //Ahora se vuelve a cargar al stack
+                c.Comment("Pushing resultados de (--)");
+                //Esto es a nievel de arm
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                //Aca se carga a la pila virtual y no necesitamos el valor del id
+                c.PushObject(c.CloneObject(obj));
+                //Esto es a nievel de arm
+                c.Push(Register.X0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                c.PushObject(c.CloneObject(obj));
+                break;
+            case StackObject.StackObjectType.Float:
+                c.Comment("Se decrementa de uno la varible: "+id);
+                //Se mueve el valor de 1 al reguistro x1
+                c.Mov(Register.X1, 1);
+                // Primero se convierte el valor del tipo int a float
+                c.Scvtf(Register.D1, Register.X1);
+                //Se realiza la suma entre valores de tipo float
+                c.Fsub(Register.D0, Register.D0, Register.D1);
+                c.Comment("Pushing resultados de (--)");
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                c.PushObject(c.CloneObject(obj));
+                //Esto es a nievel de arm
+                c.Push(Register.D0);
+                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
+                c.PushObject(c.CloneObject(obj));
+                break;
+        }
+
         return null;
     }
 
