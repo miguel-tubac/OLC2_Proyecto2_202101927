@@ -1,6 +1,0 @@
-func main(){
-
-    fmt.Println(45,45.6,true,"Hola miguel",'G');
-    fmt.Println("fin");
-
-}

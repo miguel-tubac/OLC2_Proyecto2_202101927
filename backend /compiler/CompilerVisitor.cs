@@ -12,11 +12,12 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     //Se genera una instancia de la clase de generador de arm64
     public ArmGenerator c = new ArmGenerator();
 
-    //Aca se agrega las funciones embedidas desde el entorno principal
-    public CompilerVisitor()
-    {
-    
-    }
+    //Esto me servira para guardar el nombre de las etiquetas 
+    //Ya que estas seran usadas para las sentecias de transferencia
+    private String? continueLabel = null;
+    private String? breakLabel = null;
+    private String? returnLabel = null;
+
 
     // VisitProgram
     public override Object VisitProgram(LanguageParser.ProgramContext context)
@@ -1259,6 +1260,39 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     //VisitWhileStmt    'for' expr stmt                                   # WhileStmt
     public override Object VisitWhileStmt(LanguageParser.WhileStmtContext context)
     {
+        c.Comment("Bucle While - Statement");
+        //Se obtiene las etiquetas de inicio y Fin
+        var startLable = c.GetLabel();
+        var endLabel = c.GetLabel();
+
+        //Aca preservo los nombres de las etiquetas
+        //Esto me servira cuando existan bucles anidados
+        var prevContinueLabel = continueLabel;
+        var prevBreakLabel = breakLabel;
+        continueLabel = startLable;
+        breakLabel = endLabel;
+
+        //Se coloca la etiqueta de inicio del bucle
+        c.SetLabel(startLable);
+        //Se visita el cuerpo del bucle
+        Visit(context.expr());
+        //Aca se obtiene la condicion
+        c.PopObject(Register.X0);
+        //comparamos: if condicion es falsa, saltamos a endLabel
+        c.Cbz(Register.X0, endLabel);
+        //Recorremos el cuarpo del while, es decir las condiciones
+        Visit(context.stmt());
+        //Saltamos al inicio para iniciar la condicion
+        c.B(startLable);
+
+        //Por ultimo solo se agrega la etiqueta de finalizacion
+        c.SetLabel(endLabel);
+        c.Comment("Fin del bicle - while");
+
+        //Aca se restaura el Break y Continue por si esta anidados
+        continueLabel = prevContinueLabel;
+        breakLabel = prevBreakLabel;
+
         return null;
     }
 
