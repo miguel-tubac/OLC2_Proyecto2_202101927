@@ -1296,19 +1296,165 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         return null;
     }
 
-    //VisitInstrucSwitch
+    //En esta lista se almacenaran los datos de los casos del switch
+    List<CasoSwitch> Casos = new List<CasoSwitch>();
+    List<CasoSwitch> CasoDefault = new List<CasoSwitch>();
+    //VisitInstrucSwitch: 'switch' expr '{' instCase* instDefault? '}' 
     public override Object VisitInstrucSwitch(LanguageParser.InstrucSwitchContext context)
     {
+        //Se limpia la lista con cada nueva instacia de un switch
+        Casos.Clear();
+        CasoDefault.Clear();
+
+        //Se genera un nuevo entorno
+        c.NewScope();
+
+        c.Comment("Sentencia SWITCH");
+        //Se visitan las dos expresiones por ende ya estan en la pila sp
+        Visit(context.expr()); 
+
+        //Se obtinen los valores de la pila
+        var condicion = c.PopObject(Register.X5);
+
+        // Iteramos sobre cada caso del switch, esto para cargar los casos en la lista: Casos
+        foreach (var caseCtx in context.instCase()) {
+            Visit(caseCtx);
+        }
+
+        // Visitamos la condicion default para cargar los valores a la lista
+        if (context.instDefault() != null){
+            Visit(context.instDefault());
+        }
+
+        //Se crea la etiqueta de salida
+        var endlabel = c.GetLabel();
+        //Se guarda la referncia
+        var prevBreakLabel = breakLabel;
+        //Se guard la referencia
+        breakLabel = endlabel;
+
+        // Volvemos a iterar para evaluar las condiciones
+        foreach (var casos in Casos){
+            //Se visita la expre del caso
+            Visit(casos.Condicion);
+            //Se obtinen los valores de la pila
+            var valorCaso = c.PopObject(Register.X0);
+            // Aca se validan los tipos 
+            switch((condicion.Type, valorCaso.Type)){
+                case (StackObject.StackObjectType.Int, StackObject.StackObjectType.Int):
+                    //Se comparan los dos reguistros
+                    c.CmpReg(Register.X5, Register.X0);
+                    break;
+                case (StackObject.StackObjectType.Int, StackObject.StackObjectType.Float):
+                    //Convertimos el valor entero a float
+                    c.Scvtf(Register.D5, Register.X5);
+                    //Comparamos los dos valores
+                    c.Fcmp(Register.D5, Register.D0);
+                    break;
+                case (StackObject.StackObjectType.Float, StackObject.StackObjectType.Int):
+                    //Convertimos el valor entero a float
+                    c.Scvtf(Register.D0, Register.X0);
+                    //Comparamos los dos valores
+                    c.Fcmp(Register.D5, Register.D0);
+                    break;
+                case (StackObject.StackObjectType.Float, StackObject.StackObjectType.Float):
+                    //Comparamos los dos valores
+                    c.Fcmp(Register.D5, Register.D0);
+                    break;
+                case (StackObject.StackObjectType.Bool, StackObject.StackObjectType.Bool):
+                    break;
+                case (StackObject.StackObjectType.String, StackObject.StackObjectType.String):
+                    break;
+                case (StackObject.StackObjectType.Rune, StackObject.StackObjectType.Rune):
+                    break;
+            }
+            //Se agrega la etiqueta
+            c.Beq(casos.Label);
+        }
+
+        // Si no hubo coincidencia en los cases, ejecutamos el default si existe
+        if (context.instDefault() != null){
+            c.Comment("Salto al Default");
+            // Iteramos la lista del default
+            foreach (var defaul in CasoDefault){
+                //Se agrega el salto al default
+                c.B(defaul.Label);
+            }
+        }
+
+        //Aca se agregan las etiquetas con el codigo correspondiente
+        foreach (var casos in Casos){
+            //Se agrega la etiqueta
+            c.SetLabel(casos.Label);
+            //Se visita el cuerpo del caso
+            foreach (var cuerpo in casos.Declaraciones){
+                Visit(cuerpo);
+            }
+            //Se agrega el salto para que salga del switch
+            c.B(endlabel);
+        }
+
+        //Se agrega el cuerpo del default
+        if (context.instDefault() != null){
+            foreach (var defaul in CasoDefault){
+                //Se agrega el salto al default
+                c.SetLabel(defaul.Label);
+                //Se visita el cuerpo del caso
+                foreach (var cuerpo in defaul.Declaraciones){
+                    Visit(cuerpo);
+                }
+                //Se agrega el salto para que salga del switch
+                c.B(endlabel);
+            }
+        }
+
+        //Se agrega el final del switch
+        c.SetLabel(endlabel);
+
+        //Ahora se tiene que remover el entorno que se creo
+        var bytesToRemove = c.endScope();
+        if (bytesToRemove > 0){
+            c.Comment("Removiendo "+bytesToRemove+" bytes del stack");
+            c.Mov(Register.X0, bytesToRemove);
+            c.Add(Register.SP, Register.SP, Register.X0);//Ajusta el puntero del stack
+            c.Comment("Puntero del Stack Ajustado");
+        }
+
+        //Por ultimo restauramos los nombres de las etiquetas
+        breakLabel = prevBreakLabel;
+        
         return null;
     }
-    //VisitInstrucCase
+
+    //VisitInstrucCase: instCase: 'case' expr ':' declaraciones*
     public override Object VisitInstrucCase(LanguageParser.InstrucCaseContext context)
     {
+        //Se obtiene el lavel
+        var label = c.GetLabel();
+
+        //Se agrega a la lista de casos
+        Casos.Add(new CasoSwitch { 
+            Label = label, 
+            Condicion = context.expr(), 
+            Declaraciones = context.declaraciones() 
+        });
+
         return null;
     }
-    //VisitInstrucDefault
+
+    //VisitInstrucDefault: instDefault: 'default' ':' declaraciones*  
     public override Object VisitInstrucDefault(LanguageParser.InstrucDefaultContext context)
     {
+        //Se obtiene el lavel
+        var labelDefault = c.GetLabel();
+
+        //Se agrega a la lista de casos
+        CasoDefault.Add(new CasoSwitch { 
+            Label = labelDefault, 
+            Condicion = null, 
+            Declaraciones = context.declaraciones() 
+        });
+
         return null;
     }
 

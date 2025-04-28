@@ -485,6 +485,17 @@ public class ArmGenerator
         instrucciones.Add($"CMP {rd}, {rd1}");
     }
 
+    public void Fcmp(string rd, string rd1)
+    {
+        instrucciones.Add($"FCMP {rd}, {rd1}");
+    }
+
+    //Para saltar a la etiqueta si es igual
+    public void Beq(string label)
+    {
+        instrucciones.Add($"BEQ {label}");
+    }
+
     //-------------------------------Esta parte se utiliza para las operacion de (== | !=)
     public void BoolBranchIgualacion()
     {

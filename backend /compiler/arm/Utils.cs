@@ -74,3 +74,11 @@ public static class Utils
         return destino;
     }
 }
+
+
+public class CasoSwitch
+{
+    public string Label { get; set; }
+    public analyzer.LanguageParser.ExprContext Condicion { get; set; }
+    public analyzer.LanguageParser.DeclaracionesContext[] Declaraciones { get; set; }
+}

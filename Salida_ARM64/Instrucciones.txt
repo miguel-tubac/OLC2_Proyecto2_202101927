@@ -21,6 +21,7 @@ aarch64-linux-gnu-ld -o pruebas pruebas.o
 
 ****************Regustros reservados***********************************
 x10 -> HP
+x5 -> comparar en el switch
 
 
 ****************Esto es para Debugear**********************************
