@@ -18,6 +18,10 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     private String? breakLabel = null;
     private String? returnLabel = null;
 
+    //En esta lista se almacenaran los datos de los casos del switch
+    List<CasoSwitch> Casos = new List<CasoSwitch>();
+    List<CasoSwitch> CasoDefault = new List<CasoSwitch>();
+
 
     // VisitProgram
     public override Object VisitProgram(LanguageParser.ProgramContext context)
@@ -1296,9 +1300,6 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         return null;
     }
 
-    //En esta lista se almacenaran los datos de los casos del switch
-    List<CasoSwitch> Casos = new List<CasoSwitch>();
-    List<CasoSwitch> CasoDefault = new List<CasoSwitch>();
     //VisitInstrucSwitch: 'switch' expr '{' instCase* instDefault? '}' 
     public override Object VisitInstrucSwitch(LanguageParser.InstrucSwitchContext context)
     {
@@ -1362,10 +1363,19 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                     c.Fcmp(Register.D5, Register.D0);
                     break;
                 case (StackObject.StackObjectType.Bool, StackObject.StackObjectType.Bool):
+                    //Se comparan los dos reguistros
+                    c.CmpReg(Register.X5, Register.X0);
                     break;
                 case (StackObject.StackObjectType.String, StackObject.StackObjectType.String):
+                    //Se compara las dos cadenas las cuales debe de estar en x0 y x1
+                    c.MovReg(Register.X1, Register.X5);
+                    c.BoolBranchIgualacion_String();
+                    //Se comparan los dos reguistros
+                    c.CmpImm(Register.X0, 1);
                     break;
                 case (StackObject.StackObjectType.Rune, StackObject.StackObjectType.Rune):
+                    //Se comparan los dos reguistros
+                    c.CmpReg(Register.X5, Register.X0);
                     break;
             }
             //Se agrega la etiqueta
@@ -1422,7 +1432,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
 
         //Por ultimo restauramos los nombres de las etiquetas
         breakLabel = prevBreakLabel;
-        
+
         return null;
     }
 
