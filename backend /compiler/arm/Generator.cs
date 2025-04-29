@@ -3,12 +3,14 @@ using System.Text;
 //Este va ha ser el estack vitual para poder manejar tipos 
 public class StackObject
 {
-    public enum StackObjectType {Int, Float, String, Bool, Rune}
+    public enum StackObjectType {Int, Float, String, Bool, Rune, Slice, Nil}
     public StackObjectType Type {get; set;}
     public int Length {get; set;}
     //Este es el numeor del entorno
     public int Depth {get; set;}
     public string? Id {get; set;}
+    public StackObjectType TypeDato {get; set;}
+    public int OffsetSlice {get; set;}
 }
 
 public class ArmGenerator
@@ -17,6 +19,8 @@ public class ArmGenerator
     private readonly StandardLibrary stdLib = new StandardLibrary();
     private List<StackObject> stack = new List<StackObject>();
     private int depth = 0;
+
+    private readonly List<string> slices = new List<string>();
 
     /*-------Generar nobres para las ramas------------*/
     private int labelCounter = 0;
@@ -186,6 +190,19 @@ public class ArmGenerator
         };
     }
 
+    public StackObject SliceObject()
+    {
+        return new StackObject
+        {
+            Type = StackObject.StackObjectType.Slice,
+            Length = 8,
+            Depth = depth,
+            Id = null,
+            TypeDato = StackObject.StackObjectType.Nil,
+            OffsetSlice = 0
+        };
+    }
+
 
     //Esto me permitira retornar un objeto de tipo a partir de una cadena
     public StackObject GetDefaultValue(string tipo)
@@ -338,6 +355,11 @@ public class ArmGenerator
     public void Str(string rs1, string rs2, int offset = 0)
     {
         instrucciones.Add($"STR {rs1}, [{rs2}, #{offset}]");
+    }
+
+    public void StrPostIncreme(string rs1, string rs2, int offset = 0)
+    {
+        instrucciones.Add($"STR {rs1}, [{rs2}], #{offset}");
     }
 
     public void Ldr(string rd, string rs1, int offset = 0)
@@ -660,13 +682,13 @@ public class ArmGenerator
         instrucciones.Add($"CBZ {rs}, {label}");
     }
 
-
     //Sobre escribimos la clase para convertir a string
     public override string ToString()
     {
         //Se agregan las directivas
         var sb = new StringBuilder();
         sb.AppendLine(".data");
+        sb.AppendLine("//Esto es el espacio para los strings");
         sb.AppendLine("heap: .space 4096");//se reserva un espacion para aspectos variables Bytes
         sb.AppendLine("//Esto lo voy a usar para Float");
         sb.AppendLine("zero:           .double 0.0");

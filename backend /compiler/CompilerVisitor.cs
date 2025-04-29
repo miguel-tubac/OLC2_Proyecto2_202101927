@@ -185,7 +185,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         return null;
     }
 
-    //VisitPrinStmt
+    //VisitPrinStmt  'fmt' '.' 'Println' '(' (expr ','?)* ')' ';'      # PrinStmt
     public override Object VisitPrinStmt(LanguageParser.PrinStmtContext context)
     {
         c.Comment("Print statement");
@@ -213,6 +213,19 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 case StackObject.StackObjectType.Rune:
                     c.PrintRune(Register.X0);
                     c.PrintEspace();
+                    break;
+                case StackObject.StackObjectType.Slice:
+                    c.PrintInteger(Register.X0);
+                    c.PrintEspace();
+                    int valor = value.OffsetSlice/8;
+                    System.Console.WriteLine("Vaces: "+valor);
+                    System.Console.WriteLine("Origuinal: "+ value.OffsetSlice);
+                    for(var i = 0; i < valor; i++){
+                        // instrucciones.Add($"LDR {rd}, [sp], #8");
+                        c.Ldr(Register.X0, Register.HP, 8);
+                        c.PrintInteger(Register.X0);
+                        c.PrintEspace();
+                    }
                     break;
             }
             
@@ -1554,9 +1567,48 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     }
 
 
-    //VisitSliceIniciali    ID ':=' '[' ']' tipos '{'expr*'}' ';' 
-    //return new IntValue(int.Parse(context.INT().GetText())); 
-    public override Object VisitSliceIniciali(LanguageParser.SliceInicialiContext context){
+    //VisitSliceIniciali    ID ':=' '[' ']' tipos '{'(expr ','?)*'}' ';' 
+    public override Object VisitSliceIniciali(LanguageParser.SliceInicialiContext context)
+    {
+        string id = context.ID().GetText(); //Obtenemos el id
+        string tipo = context.tipos().GetText(); //Obtenemos el tipo
+        //Se obtiene un objeto con el tipo
+        var objTipo = c.GetDefaultValue(tipo);
+
+        //Se obtiene un objeto de tipo slice
+        var objSlice = c.SliceObject();
+        //Se le asigna al tipo del Slice el tipo correcto
+        objSlice.TypeDato = objTipo.Type;
+        
+        //Se reinicia el Heap pointer para que no se desborde
+        c.Push(Register.HP);
+        //c.ADR(Register.HP, "heap");
+
+        //Este sera el valor del Offset
+        //int valor = 0;
+        //Se recorren las expreciones
+        foreach (var expre in context.expr()){
+            //Se visita la expresion
+            Visit(expre);
+            //Se obtinen los valores de la pila
+            var dato = c.PopObject(Register.X0);
+            //Aca se guarda en una estructura de tipo areglo
+            c.StrPostIncreme(Register.X0, Register.HP, 8);
+            //Se va incrementando el ofset 8 bytes = 64 bits(por cada registro)
+            //valor += 8;
+            //c.Mov(Register.X0, 8);
+            //c.Add(Register.HP, Register.HP, Register.X0);
+        }
+
+        //Se ajusta el ofset
+        objSlice.OffsetSlice = context.expr().Length;
+        System.Console.WriteLine("En la declaracion: "+ objSlice.OffsetSlice);
+        
+        //Se asocia el obejto con el strong
+        c.PushConstant(objSlice, objSlice);
+
+        //Aca se asocia el valor al nombre en el stack virtual
+        c.TagObject(id);
         return null;
     }
 
