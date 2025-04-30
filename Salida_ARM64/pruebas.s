@@ -55,7 +55,7 @@ _start:
 	// Function call Completed
 	L8:
 	MOV x4, 32
-	SUB x4, sp, x4
+	SUB x4, x29, x4
 	LDR x4, [x4, #0]
 	MOV x1, 8
 	SUB x1, x29, x1
@@ -210,7 +210,7 @@ BL ackermann
 // Function call Completed
 L5:
 MOV x4, 32
-SUB x4, sp, x4
+SUB x4, x29, x4
 LDR x4, [x4, #0]
 MOV x1, 8
 SUB x1, x29, x1
@@ -292,7 +292,7 @@ BL ackermann
 // Function call Completed
 L7:
 MOV x4, 32
-SUB x4, sp, x4
+SUB x4, x29, x4
 LDR x4, [x4, #0]
 MOV x1, 8
 SUB x1, x29, x1
@@ -318,7 +318,7 @@ BL ackermann
 // Function call Completed
 L6:
 MOV x4, 32
-SUB x4, sp, x4
+SUB x4, x29, x4
 LDR x4, [x4, #0]
 MOV x1, 8
 SUB x1, x29, x1

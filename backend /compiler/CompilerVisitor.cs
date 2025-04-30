@@ -1878,7 +1878,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         }
         c.Add(Register.SP, Register.SP, Register.X0);
 
-        System.Console.WriteLine("Entro a la llamada 33");
+        //System.Console.WriteLine("Entro a la llamada 33");
 
         //Calcula la posicion donde se almacena el FP
         c.Mov(Register.X0, stackElementSize);
@@ -1903,7 +1903,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         //Obtener el valor de retorno
         var returnOffset = frameSize - 1;
         c.Mov(Register.X4, returnOffset * stackElementSize);
-        c.Sub(Register.X4, Register.SP, Register.X4);
+        c.Sub(Register.X4, Register.FP, Register.X4);
         c.Ldr(Register.X4, Register.X4);
 
         //4. Regresa el Fp al contexto de ejecucion anterior
@@ -2100,12 +2100,11 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
 
             while (i < paramCtx.ChildCount)
             {
-                System.Console.WriteLine("Aca no deberia de ingresar");
+                //System.Console.WriteLine("Aca no deberia de ingresar");
                 var idToken = paramCtx.GetChild(i);
                 if (idToken is TerminalNodeImpl idNode && idNode.Symbol.Type == LanguageParser.ID)
                 {
                     string id = idNode.GetText();
-                    System.Console.WriteLine("Este es el id: "+id);
                     StackObject.StackObjectType type = StackObject.StackObjectType.Nil;
 
                     // Revisa si el siguiente hijo es un tipo
@@ -2127,7 +2126,10 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                         Offset = paramCounter + baseOffset,
                         Length = 8
                     });
+                    System.Console.WriteLine("-------------------------");
+                    System.Console.WriteLine("Este es el id: "+id);
                     System.Console.WriteLine("Este es el tipo: "+type);
+                    System.Console.WriteLine("-------------------------");
                     paramCounter++;
                 }
 
