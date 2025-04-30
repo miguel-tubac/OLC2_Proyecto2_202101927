@@ -6,6 +6,13 @@ using System.Globalization;
 using System.Security.Cryptography.X509Certificates;
 using System.Xml.Schema;
 using System.Security.AccessControl;
+using Antlr4.Runtime.Tree;
+
+public class FunctionMetadata
+{
+    public int FrameSize;
+    public StackObject.StackObjectType ReturnType;
+}
 
 public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir que retorna un ValueWrapper
 {   
@@ -22,6 +29,10 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     List<CasoSwitch> Casos = new List<CasoSwitch>();
     List<CasoSwitch> CasoDefault = new List<CasoSwitch>();
 
+    //Esto es para las funciones
+    private Dictionary<string, FunctionMetadata> functions = new Dictionary<string, FunctionMetadata>();
+    private string? insideFunction = null;
+    private int framePointerOffset = 0;
 
     // VisitProgram
     public override Object VisitProgram(LanguageParser.ProgramContext context)
@@ -65,6 +76,23 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
 
         //Se obtiene un objeto con el tipo
         var objTipo = c.GetDefaultValue(tipo);
+
+        if (insideFunction != null)
+        {
+            var localObject = c.GetFrameLocal(framePointerOffset);
+            var valueObject = c.PopObject(Register.X0);
+
+            c.Mov(Register.X1, framePointerOffset * 8); // FIXME:  <-----Esto puede fallar
+            //c.Mov(Register.X1, localObject.Offset * 8);
+            c.Sub(Register.X1, Register.FP, Register.X1);
+            //Aca carga el valor en la direccion
+            c.Str(Register.X0, Register.X1);
+
+            localObject.Type = valueObject.Type;
+            framePointerOffset++;
+
+            return null;
+        }
 
         // Si hay una asignación ('=' expr)
         if (context.expr() != null){ 
@@ -244,6 +272,19 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
 
         //Ahora calcular cuanto me tengo que mover relativo a la variable en el stack
         var (offset, obj) = c.GetObject(id);
+
+        //Esto es para las funciones
+        if (insideFunction != null)
+        {
+            c.Mov(Register.X0, obj.Offset * 8);
+            c.Sub(Register.X0, Register.FP, Register.X0);
+            c.Ldr(Register.X0, Register.X0);
+            c.Push(Register.X0);
+            var cloneObject = c.CloneObject(obj);
+            cloneObject.Id = null;
+            c.PushObject(cloneObject);
+            return null;
+        }
 
         //Aca se obtiene la direccion
         c.Mov(Register.X0, offset);
@@ -865,6 +906,15 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
             var valueObject = c.PopObject2(Register.X0);
             //Aca obtenemos de cuanto debemos realizar el ofsset para encontrar el valor
             var (offset, varObject) = c.GetObject(varName);
+
+            //Esto es para las funciones
+            if (insideFunction != null)
+            {
+                c.Mov(Register.X1, varObject.Offset * 8);
+                c.Sub(Register.X1, Register.FP, Register.X1);
+                c.Str(Register.X0, Register.X1);
+                return null;
+            }
 
             //Aca caegamo en el x1 el offset
             c.Mov(Register.X1, offset);
@@ -1766,6 +1816,26 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     // args: expr (','expr)*;
     public override Object VisitLlamadaFuncio(LanguageParser.LlamadaFuncioContext context)
     {
+        if (context.expr() is not LanguageParser.IdentifaiderContext idContenxt) return null;
+
+        string funcName = idContenxt.ID().GetText();
+        var call = context.llamada()[0];
+
+        if (call is not LanguageParser.LlamaContext callContext) return null;
+        
+        //Lamada a la funcion embedida
+        var postFuncCallLabel = c.GetLabel();
+
+        //1. | RA | FP |
+        int baseOffset = 2;
+        int stackElementSize = 8;
+
+        c.Mov(Register.X0, baseOffset * stackElementSize);
+        c.Sub(Register.SP, Register.SP, Register.X0);
+
+        //2. | RA | FP | ......posiciones |
+        //TODO: min 53
+
         return null;
     }
 
@@ -1883,8 +1953,134 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
 
     //VisitFuncDcl
     //'func' ID '(' params? ')' tipos? '{' declaraciones* '}'    # FuncDcl1
+    // params: ID tipos? (',' ID tipos?)*
     public override Object VisitFuncDcl1(LanguageParser.FuncDcl1Context context)
     {   
+        /*
+            | RA | FA - 1 | ....parametros | ....variable locales | return direccion |
+        */
+        int baseOffset = 2;
+        int paramsOffset = 0;
+
+        if (context.@params() != null){
+            paramsOffset = context.@params().ID().Length;
+        }
+
+        FrameVisitor framevisitor = new FrameVisitor(baseOffset + paramsOffset);
+
+        foreach (var dcl in context.declaraciones())
+        {
+            framevisitor.Visit(dcl);
+        }
+
+        var frame = framevisitor.Frame;
+        int localOffset = frame.Count;
+        int returnOffset = 1;
+
+        int totalFrameSize = baseOffset + paramsOffset + localOffset + returnOffset;
+
+        string funcName = context.ID().GetText();
+        StackObject.StackObjectType funcType = c.GetDefaultValue(context.tipos().GetText()).Type;
+
+        System.Console.WriteLine("Total FRAMe: " + totalFrameSize);
+
+        functions.Add(funcName, new FunctionMetadata
+        {
+            FrameSize = totalFrameSize,
+            ReturnType = funcType
+        });
+
+        //Aca ya se empiza a crear codigo ARM64
+        var prevInstrucions = c.instrucciones;
+        c.instrucciones = new List<string>();
+
+        var paramCounter = 0;
+        var paramCtx = context.@params();
+        int i = 0;
+
+        while (i < paramCtx.ChildCount)
+        {
+            var idToken = paramCtx.GetChild(i);
+            if (idToken is TerminalNodeImpl idNode && idNode.Symbol.Type == LanguageParser.ID)
+            {
+                string id = idNode.GetText();
+                StackObject.StackObjectType type = StackObject.StackObjectType.Nil;
+
+                // Revisa si el siguiente hijo es un tipo
+                if (i + 1 < paramCtx.ChildCount)
+                {
+                    var maybeTipo = paramCtx.GetChild(i + 1);
+                    if (maybeTipo is LanguageParser.TiposContext tipoCtx)
+                    {
+                        type = c.GetDefaultValue(tipoCtx.GetText()).Type;
+                        i++; // Avanza por el tipo
+                    }
+                }
+
+                // Agrega el parámetro al contexto
+                c.PushObject(new StackObject
+                {
+                    Type = type,
+                    Id = id,
+                    Offset = paramCounter + baseOffset,
+                    Length = 8
+                });
+
+                paramCounter++;
+            }
+
+            // Avanza al siguiente (salta comas u otros)
+            i++;
+        }
+
+        //Esto es la metadata de cada una de las variable locales
+        foreach (FrameElement element in frame)
+        {
+            c.PushObject(new StackObject
+            {
+                Type = StackObject.StackObjectType.Nil,
+                Id = element.Name,
+                Offset = element.Offset,
+                Length = 8
+            });
+        }
+
+        insideFunction = funcName;
+        framePointerOffset = 0;
+
+        returnLabel = c.GetLabel();
+
+        c.Comment("Function Declaration: "+ funcName);
+        c.SetLabel(funcName);
+        
+        //Se recorre el cuerpo de la funcion
+        foreach (var dcl in context.declaraciones())
+        {
+            Visit(dcl);
+        }
+
+        c.SetLabel(returnLabel);
+
+        //Estas etiquetas me sirven para regresar despues de la funcion
+        c.Add(Register.X0, Register.FP, Register.XZR);
+        c.Ldr(Register.LR, Register.X0);
+        c.Br(Register.LR);
+
+        c.Comment("End of Function: "+ funcName);
+
+        //Se limpia el stack
+        for (int j = 0; j < paramsOffset + localOffset; j++)
+        {
+            c.PopObject3();
+        }
+
+        foreach (var instrucion in c.instrucciones)
+        {
+            c.funcInstrucions.Add(instrucion);
+        }
+        c.instrucciones = prevInstrucions;
+        insideFunction = null;
+
         return null;
     }
 

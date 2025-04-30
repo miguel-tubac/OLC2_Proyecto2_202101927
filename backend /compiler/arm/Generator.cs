@@ -11,16 +11,20 @@ public class StackObject
     public string? Id {get; set;}
     public StackObjectType TypeDato {get; set;}
     public int OffsetSlice {get; set;}
+    public int Offset {get; set;}
 }
 
 public class ArmGenerator
 {
-    private readonly List<string> instrucciones = new List<string>();
+    //Esto es para el codigo en general
+    public List<string> instrucciones = new List<string>();
+    //Esto es para las funciones
+    public List<string> funcInstrucions = new List<string>();
     private readonly StandardLibrary stdLib = new StandardLibrary();
     private List<StackObject> stack = new List<StackObject>();
     private int depth = 0;
 
-    private readonly List<string> slices = new List<string>();
+    //private readonly List<string> slices = new List<string>();
 
     /*-------Generar nobres para las ramas------------*/
     private int labelCounter = 0;
@@ -36,7 +40,8 @@ public class ArmGenerator
 
     /* ----- stack operaciones ----*/
     public void PushObject(StackObject obj)
-    {
+    {   
+        Comment($"Pushing object {obj.Type} to stack");
         stack.Add(obj);
     }
 
@@ -130,6 +135,27 @@ public class ArmGenerator
         Pop(rd);
         
         //Retorno el objeto por si se desea usar
+        return obj;
+    }
+
+
+    //Esto es para las funciones
+    public void PopObject3()
+    {
+        Comment("Popping object from stack");
+        try{
+            stack.RemoveAt(stack.Count - 1);
+        }
+        catch(System.Exception){
+            System.Console.WriteLine(this.ToString());
+            throw new Exception("stack is empty");
+        }
+    }
+
+    //Decirele que variabel locale estoy recorriendo 
+    public StackObject GetFrameLocal(int index)
+    {
+        var obj = stack.Where(o => o.Type == StackObject.StackObjectType.Nil).ToList()[index];
         return obj;
     }
 
@@ -677,6 +703,11 @@ public class ArmGenerator
         instrucciones.Add($"B {label}");
     }
 
+    public void Br(string rd)
+    {
+        instrucciones.Add($"BR {rd}");
+    }
+
     //Sireve para comparar con el valor cero
     public void Cbz(string rs, string label){
         instrucciones.Add($"CBZ {rs}, {label}");
@@ -724,6 +755,10 @@ public class ArmGenerator
         {
             sb.AppendLine("\t"+instruction);
         }
+
+        //Esto agrega las funciones
+        sb.AppendLine("\n\n\n // Funciones Foraneas");
+        funcInstrucions.ForEach(i => sb.AppendLine(i));
 
         //Esto es para agregar la conversion de int a string
         sb.AppendLine("\n\n\n // Libreria Estandar");
