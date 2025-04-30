@@ -27,45 +27,48 @@ newline: .ascii "\n"
 _start:
 	//Esto es para leer Strings
 	ADR x10, heap
-	STR x10, [sp, #-8]!
-	// Constante: 1
-	MOV x0, 1
-	STR x0, [sp, #-8]!
-	LDR x0, [sp], #8
-	STR x0, [x10], #8
-	// Constante: 2
-	MOV x0, 2
-	STR x0, [sp, #-8]!
-	LDR x0, [sp], #8
-	STR x0, [x10], #8
-	// Constante: 3
-	MOV x0, 3
-	STR x0, [sp, #-8]!
-	LDR x0, [sp], #8
-	STR x0, [x10], #8
-	// Constante: 4
-	MOV x0, 4
-	STR x0, [sp, #-8]!
-	LDR x0, [sp], #8
-	STR x0, [x10], #8
-	// Constante: 5
-	MOV x0, 5
-	STR x0, [sp, #-8]!
-	LDR x0, [sp], #8
-	STR x0, [x10], #8
-
-    //SUB x10, x10, #8
-
 	// Print statement
-	//MOV x0, -16
-	//ADD x0, sp, x0
-	//LDR x0, [x0, #0]
-	//STR x0, [sp, #-8]!
-	LDR x0, [sp], #-8
+	MOV x0, 16
+	SUB sp, sp, x0
+	// Visitando parametros de la funcion
+	// Constante: 0
+	MOV x0, 0
+	STR x0, [sp, #-8]!
+	// Pushing object Int to stack
+	// Constante: 0
+	MOV x0, 0
+	STR x0, [sp, #-8]!
+	// Pushing object Int to stack
+	MOV x0, 32
+	ADD sp, sp, x0
+	MOV x0, 8
+	SUB x0, sp, x0
+	// 	//Esto es para leer los strings
+	ADR x1, L8
+	STR x1, [sp, #-8]!
+	STR x29, [sp, #-8]!
+	ADD x29, x0, xzr
+	MOV x0, 24
+	SUB sp, sp, x0
+	// Calling function: ackermann
+	BL ackermann
+	// Function call Completed
+	L8:
+	MOV x4, 32
+	SUB x4, sp, x4
+	LDR x4, [x4, #0]
+	MOV x1, 8
+	SUB x1, x29, x1
+	LDR x29, [x1, #0]
+	MOV x0, 40
+	ADD sp, sp, x0
+	STR x4, [sp, #-8]!
+	// Pushing object Int to stack
+	// End of function Call: ackermann
+	LDR x0, [sp], #8
 	MOV x0, x0
 	BL print_integer
 	BL print_space
-
 	BL print_new_line
 	// Finalizando programa
 	MOV x0, 0
@@ -74,7 +77,317 @@ _start:
 
 
 
+ // Funciones Foraneas
+// Pushing object Int to stack
+// Pushing object Int to stack
+// Function Declaration: ackermann
+ackermann:
+// Sentencia IF - ELSE
+// Operacion de (== | !=)
+MOV x0, 16
+SUB x0, x29, x0
+LDR x0, [x0, #0]
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+// Constante: 0
+MOV x0, 0
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+LDR x0, [sp], #8
+LDR x1, [sp], #8
+BL comparar_igual_int
+// Pushing resultados de la IGUALACION(==)
+STR x0, [sp, #-8]!
+// Pushing object Bool to stack
+LDR x0, [sp], #8
+CBZ x0, L1
+// Bloque de nuevo entorno
+// Return Stament
+// ADD/SUB operaciones
+MOV x0, 24
+SUB x0, x29, x0
+LDR x0, [x0, #0]
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+// Constante: 1
+MOV x0, 1
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+LDR x0, [sp], #8
+LDR x1, [sp], #8
+ADD x0, x1, x0
+// Pushing resultados de la SUMA
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+LDR x0, [sp], #8
+MOV x1, 32
+SUB x1, x29, x1
+STR x0, [x1, #0]
+B L0
+// End of return statement
+B L2
+L1:
+// Sentencia IF - ELSE
+// Operacion Logica And(&&)
+// Operacion de (> | < | >= | <=)
+MOV x0, 16
+SUB x0, x29, x0
+LDR x0, [x0, #0]
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+// Constante: 0
+MOV x0, 0
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+LDR x0, [sp], #8
+LDR x1, [sp], #8
+BL comparar_mayor_int
+// Pushing resultados de los RELACIONALES (> | < | >= | <=)
+STR x0, [sp, #-8]!
+// Pushing object Bool to stack
+// Operacion de (== | !=)
+MOV x0, 24
+SUB x0, x29, x0
+LDR x0, [x0, #0]
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+// Constante: 0
+MOV x0, 0
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+LDR x0, [sp], #8
+LDR x1, [sp], #8
+BL comparar_igual_int
+// Pushing resultados de la IGUALACION(==)
+STR x0, [sp, #-8]!
+// Pushing object Bool to stack
+LDR x0, [sp], #8
+LDR x1, [sp], #8
+AND x0, x1, x0
+// Pushing resultados de AND(&&)
+STR x0, [sp, #-8]!
+// Pushing object Bool to stack
+LDR x0, [sp], #8
+CBZ x0, L3
+// Bloque de nuevo entorno
+// Return Stament
+MOV x0, 16
+SUB sp, sp, x0
+// Visitando parametros de la funcion
+// ADD/SUB operaciones
+MOV x0, 16
+SUB x0, x29, x0
+LDR x0, [x0, #0]
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+// Constante: 1
+MOV x0, 1
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+LDR x0, [sp], #8
+LDR x1, [sp], #8
+SUB x0, x1, x0
+// Pushing resultados de la RESTA
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+// Constante: 1
+MOV x0, 1
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+MOV x0, 32
+ADD sp, sp, x0
+MOV x0, 8
+SUB x0, sp, x0
+// 	//Esto es para leer los strings
+ADR x1, L5
+STR x1, [sp, #-8]!
+STR x29, [sp, #-8]!
+ADD x29, x0, xzr
+MOV x0, 24
+SUB sp, sp, x0
+// Calling function: ackermann
+BL ackermann
+// Function call Completed
+L5:
+MOV x4, 32
+SUB x4, sp, x4
+LDR x4, [x4, #0]
+MOV x1, 8
+SUB x1, x29, x1
+LDR x29, [x1, #0]
+MOV x0, 40
+ADD sp, sp, x0
+STR x4, [sp, #-8]!
+// Pushing object Int to stack
+// End of function Call: ackermann
+LDR x0, [sp], #8
+MOV x1, 32
+SUB x1, x29, x1
+STR x0, [x1, #0]
+B L0
+// End of return statement
+// Removeindo 16 bytes del stack
+MOV x0, 16
+ADD sp, sp, x0
+B L4
+L3:
+// Bloque de nuevo entorno
+// Return Stament
+MOV x0, 16
+SUB sp, sp, x0
+// Visitando parametros de la funcion
+// ADD/SUB operaciones
+MOV x0, 16
+SUB x0, x29, x0
+LDR x0, [x0, #0]
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+// Constante: 1
+MOV x0, 1
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+LDR x0, [sp], #8
+LDR x1, [sp], #8
+SUB x0, x1, x0
+// Pushing resultados de la RESTA
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+MOV x0, 16
+SUB sp, sp, x0
+// Visitando parametros de la funcion
+MOV x0, 16
+SUB x0, x29, x0
+LDR x0, [x0, #0]
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+// ADD/SUB operaciones
+MOV x0, 24
+SUB x0, x29, x0
+LDR x0, [x0, #0]
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+// Constante: 1
+MOV x0, 1
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+LDR x0, [sp], #8
+LDR x1, [sp], #8
+SUB x0, x1, x0
+// Pushing resultados de la RESTA
+STR x0, [sp, #-8]!
+// Pushing object Int to stack
+MOV x0, 32
+ADD sp, sp, x0
+MOV x0, 8
+SUB x0, sp, x0
+// 	//Esto es para leer los strings
+ADR x1, L7
+STR x1, [sp, #-8]!
+STR x29, [sp, #-8]!
+ADD x29, x0, xzr
+MOV x0, 24
+SUB sp, sp, x0
+// Calling function: ackermann
+BL ackermann
+// Function call Completed
+L7:
+MOV x4, 32
+SUB x4, sp, x4
+LDR x4, [x4, #0]
+MOV x1, 8
+SUB x1, x29, x1
+LDR x29, [x1, #0]
+MOV x0, 40
+ADD sp, sp, x0
+STR x4, [sp, #-8]!
+// Pushing object Int to stack
+// End of function Call: ackermann
+MOV x0, 32
+ADD sp, sp, x0
+MOV x0, 8
+SUB x0, sp, x0
+// 	//Esto es para leer los strings
+ADR x1, L6
+STR x1, [sp, #-8]!
+STR x29, [sp, #-8]!
+ADD x29, x0, xzr
+MOV x0, 24
+SUB sp, sp, x0
+// Calling function: ackermann
+BL ackermann
+// Function call Completed
+L6:
+MOV x4, 32
+SUB x4, sp, x4
+LDR x4, [x4, #0]
+MOV x1, 8
+SUB x1, x29, x1
+LDR x29, [x1, #0]
+MOV x0, 40
+ADD sp, sp, x0
+STR x4, [sp, #-8]!
+// Pushing object Int to stack
+// End of function Call: ackermann
+LDR x0, [sp], #8
+MOV x1, 32
+SUB x1, x29, x1
+STR x0, [x1, #0]
+B L0
+// End of return statement
+L4:
+L2:
+L0:
+ADD x0, x29, xzr
+LDR x30, [x0, #0]
+BR x30
+// End of Function: ackermann
+// Popping object from stack
+// Popping object from stack
+
+
+
  // Libreria Estandar
+
+//---------------Aca se comparan dos numeros de tipo int
+//Primer numero en X0
+//Segundo numero en X1
+//-----------Inicio de la funcion
+comparar_igual_int:
+    cmp x1, x0          // Compara X0 y X1
+    beq iguales        // Salta si son iguales
+    bne diferentes     // Salta si son diferentes
+iguales:
+    // Código para cuando son iguales
+    mov x0, #1
+    b fin
+diferentes:
+    // Código para cuando NO son iguales
+    mov x0, #0
+    b fin
+fin:
+    ret    
+    
+    
+
+
+//---------------Aca se comparan dos numeros de tipo int
+//Primer numero en X0
+//Segundo numero en X1
+//-----------Inicio de la funcion
+comparar_mayor_int:
+    cmp x1, x0          // Compara X0 y X1
+    bgt x1_mayor         //  Salta si x1 > x0
+    // De lo contrario
+    mov x0, #0
+    b fin_mayor
+x1_mayor:
+    // Código para cuando NO son iguales
+    mov x0, #1
+    b fin_mayor
+fin_mayor:
+    ret 
+    
+
 
 //--------------------------------------------------------------
 // print_integer - Prints a signed integer to stdout

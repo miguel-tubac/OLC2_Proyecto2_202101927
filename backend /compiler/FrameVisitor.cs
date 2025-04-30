@@ -25,7 +25,7 @@ public class FrameVisitor : LanguageBaseVisitor<Object>
         BaseOffset = baseOffset;
     }
 
-    public override Object? VisitPrimeraDecl(LanguageParser.PrimeraDeclContext context)
+    public override Object VisitPrimeraDecl(LanguageParser.PrimeraDeclContext context)
     {
         string name = context.ID().GetText();
 
@@ -73,6 +73,15 @@ public class FrameVisitor : LanguageBaseVisitor<Object>
             Visit(context.forInit().declararvar());
         }
         Visit(context.stmt());
+        return null;
+    }
+
+    public override Object VisitPrinStmt(LanguageParser.PrinStmtContext context)
+    {
+        foreach(var val in context.expr())
+        {
+            Visit(val);
+        }
         return null;
     }
 }

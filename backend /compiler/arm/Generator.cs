@@ -216,6 +216,17 @@ public class ArmGenerator
         };
     }
 
+    public StackObject NilObject()
+    {
+        return new StackObject
+        {
+            Type = StackObject.StackObjectType.Nil,
+            Length = 8,
+            Depth = depth,
+            Id = null
+        };
+    }
+
     public StackObject SliceObject()
     {
         return new StackObject
@@ -240,6 +251,7 @@ public class ArmGenerator
             "bool" => BoolObject(),
             "string" => StringObject(),
             "rune" => RuneObject(), // Usamos '\0' como valor por defecto
+            "nil" => NilObject(),
             _ => throw new Exception($"Tipo desconocido: {tipo}")
         };
     }
@@ -706,6 +718,11 @@ public class ArmGenerator
     public void Br(string rd)
     {
         instrucciones.Add($"BR {rd}");
+    }
+    
+    public void Bl(string rd)
+    {
+        instrucciones.Add($"BL {rd}");
     }
 
     //Sireve para comparar con el valor cero

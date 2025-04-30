@@ -77,27 +77,30 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         //Se obtiene un objeto con el tipo
         var objTipo = c.GetDefaultValue(tipo);
 
-        if (insideFunction != null)
-        {
-            var localObject = c.GetFrameLocal(framePointerOffset);
-            var valueObject = c.PopObject(Register.X0);
-
-            c.Mov(Register.X1, framePointerOffset * 8); // FIXME:  <-----Esto puede fallar
-            //c.Mov(Register.X1, localObject.Offset * 8);
-            c.Sub(Register.X1, Register.FP, Register.X1);
-            //Aca carga el valor en la direccion
-            c.Str(Register.X0, Register.X1);
-
-            localObject.Type = valueObject.Type;
-            framePointerOffset++;
-
-            return null;
-        }
+        
 
         // Si hay una asignación ('=' expr)
         if (context.expr() != null){ 
             //Aca se valida que el valor este en la pila
             Visit(context.expr());
+
+            if (insideFunction != null)
+            {
+                var localObject = c.GetFrameLocal(framePointerOffset);
+                var valueObject = c.PopObject(Register.X0);
+
+                c.Mov(Register.X1, framePointerOffset * 8); // FIXME:  <-----Esto puede fallar
+                //c.Mov(Register.X1, localObject.Offset * 8);
+                c.Sub(Register.X1, Register.FP, Register.X1);
+                //Aca carga el valor en la direccion
+                c.Str(Register.X0, Register.X1);
+
+                localObject.Type = valueObject.Type;
+                framePointerOffset++;
+
+                return null;
+            }
+
             //Aca se asocia el valor al nombre en el stack virtual
             c.TagObject(id);
         }
@@ -1610,9 +1613,31 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         return null;
     }
 
-    //VisitReturnStmt
+    //VisitReturnStmt:   'return' expr? ';' 
     public override Object VisitReturnStmt(LanguageParser.ReturnStmtContext context)
     {
+        c.Comment("Return Stament");
+        if (context.expr() == null){
+            c.Br(returnLabel);
+            return null;
+        }
+
+        //Se evalua por si no estamos dentro de una funcion
+        if (insideFunction == null) throw new Exception("Return statement outside function");
+
+        Visit(context.expr());
+        //TODO: aca se debera de evaluar el tipo si no estoy mal
+        c.PopObject(Register.X0);
+
+        var frameSize = functions[insideFunction].FrameSize;
+        var returnOffset = frameSize - 1;
+        c.Mov(Register.X1, returnOffset * 8);
+        c.Sub(Register.X1, Register.FP, Register.X1);
+        //Store the return value at the return offset
+        c.Str(Register.X0, Register.X1);
+        c.B(returnLabel);
+
+        c.Comment("End of return statement");
         return null;
     }
 
@@ -1835,6 +1860,72 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
 
         //2. | RA | FP | ......posiciones |
         //TODO: min 53
+        if (callContext.args() != null)
+        {
+            c.Comment("Visitando parametros de la funcion");
+            foreach (var param in callContext.args().expr())
+            {
+                //Visita los parametros
+                Visit(param);
+            }
+        }
+
+        //3. Calcular el valor del FP
+        if (callContext.args() != null){
+            c.Mov(Register.X0, stackElementSize * (baseOffset + callContext.args().expr().Length));
+        }else{
+            c.Mov(Register.X0, stackElementSize * (baseOffset + 0));
+        }
+        c.Add(Register.SP, Register.SP, Register.X0);
+
+        System.Console.WriteLine("Entro a la llamada 33");
+
+        //Calcula la posicion donde se almacena el FP
+        c.Mov(Register.X0, stackElementSize);
+        c.Sub(Register.X0, Register.SP, Register.X0);
+
+        c.ADR(Register.X1, postFuncCallLabel);
+        c.Push(Register.X1);
+
+        c.Push(Register.FP);
+        c.Add(Register.FP, Register.X0, Register.XZR);
+
+        //Alinea el sp al final del frame
+        int frameSize = functions[funcName].FrameSize;
+        c.Mov(Register.X0, (frameSize - 2) * stackElementSize);
+        c.Sub(Register.SP, Register.SP, Register.X0);
+
+        c.Comment("Calling function: "+ funcName);
+        c.Bl(funcName);
+        c.Comment("Function call Completed");
+        c.SetLabel(postFuncCallLabel);
+
+        //Obtener el valor de retorno
+        var returnOffset = frameSize - 1;
+        c.Mov(Register.X4, returnOffset * stackElementSize);
+        c.Sub(Register.X4, Register.SP, Register.X4);
+        c.Ldr(Register.X4, Register.X4);
+
+        //4. Regresa el Fp al contexto de ejecucion anterior
+        c.Mov(Register.X1, stackElementSize);
+        c.Sub(Register.X1, Register.FP, Register.X1);
+        c.Ldr(Register.FP, Register.X1);
+
+        //5. Regresa el SP al contexto de ejecucion anterior
+        c.Mov(Register.X0, stackElementSize * frameSize);
+        c.Add(Register.SP, Register.SP, Register.X0);
+
+        //6. Regresa el valor del retorno
+        c.Push(Register.X4);
+        c.PushObject(new StackObject
+        {
+            Type = functions[funcName].ReturnType,
+            Id = null,
+            Offset = 0,
+            Length = 8
+        });
+
+        c.Comment("End of function Call: " + funcName);
 
         return null;
     }
@@ -1966,21 +2057,28 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
             paramsOffset = context.@params().ID().Length;
         }
 
+        System.Console.WriteLine("Cantida de parametros: "+paramsOffset);
+
         FrameVisitor framevisitor = new FrameVisitor(baseOffset + paramsOffset);
 
         foreach (var dcl in context.declaraciones())
         {
             framevisitor.Visit(dcl);
         }
-
+        
         var frame = framevisitor.Frame;
         int localOffset = frame.Count;
         int returnOffset = 1;
 
         int totalFrameSize = baseOffset + paramsOffset + localOffset + returnOffset;
-
+        
         string funcName = context.ID().GetText();
-        StackObject.StackObjectType funcType = c.GetDefaultValue(context.tipos().GetText()).Type;
+        //System.Console.WriteLine("Aqui llego 1");
+
+        StackObject.StackObjectType funcType = c.GetDefaultValue("nil").Type;
+        if (context.tipos() != null){
+            funcType = c.GetDefaultValue(context.tipos().GetText()).Type;
+        }
 
         System.Console.WriteLine("Total FRAMe: " + totalFrameSize);
 
@@ -1994,55 +2092,63 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         var prevInstrucions = c.instrucciones;
         c.instrucciones = new List<string>();
 
-        var paramCounter = 0;
-        var paramCtx = context.@params();
-        int i = 0;
+        
+        if(context.@params() != null){
+            var paramCounter = 0;
+            var paramCtx = context.@params();
+            int i = 0;
 
-        while (i < paramCtx.ChildCount)
-        {
-            var idToken = paramCtx.GetChild(i);
-            if (idToken is TerminalNodeImpl idNode && idNode.Symbol.Type == LanguageParser.ID)
+            while (i < paramCtx.ChildCount)
             {
-                string id = idNode.GetText();
-                StackObject.StackObjectType type = StackObject.StackObjectType.Nil;
-
-                // Revisa si el siguiente hijo es un tipo
-                if (i + 1 < paramCtx.ChildCount)
+                System.Console.WriteLine("Aca no deberia de ingresar");
+                var idToken = paramCtx.GetChild(i);
+                if (idToken is TerminalNodeImpl idNode && idNode.Symbol.Type == LanguageParser.ID)
                 {
-                    var maybeTipo = paramCtx.GetChild(i + 1);
-                    if (maybeTipo is LanguageParser.TiposContext tipoCtx)
+                    string id = idNode.GetText();
+                    System.Console.WriteLine("Este es el id: "+id);
+                    StackObject.StackObjectType type = StackObject.StackObjectType.Nil;
+
+                    // Revisa si el siguiente hijo es un tipo
+                    if (i + 1 < paramCtx.ChildCount)
                     {
-                        type = c.GetDefaultValue(tipoCtx.GetText()).Type;
-                        i++; // Avanza por el tipo
+                        var maybeTipo = paramCtx.GetChild(i + 1);
+                        if (maybeTipo is LanguageParser.TiposContext tipoCtx)
+                        {
+                            type = c.GetDefaultValue(tipoCtx.GetText()).Type;
+                            i++; // Avanza por el tipo
+                        }
                     }
+
+                    // Agrega el parámetro al contexto
+                    c.PushObject(new StackObject
+                    {
+                        Type = type,
+                        Id = id,
+                        Offset = paramCounter + baseOffset,
+                        Length = 8
+                    });
+                    System.Console.WriteLine("Este es el tipo: "+type);
+                    paramCounter++;
                 }
 
-                // Agrega el parámetro al contexto
-                c.PushObject(new StackObject
-                {
-                    Type = type,
-                    Id = id,
-                    Offset = paramCounter + baseOffset,
-                    Length = 8
-                });
-
-                paramCounter++;
+                // Avanza al siguiente (salta comas u otros)
+                i++;
             }
 
-            // Avanza al siguiente (salta comas u otros)
-            i++;
         }
 
         //Esto es la metadata de cada una de las variable locales
-        foreach (FrameElement element in frame)
-        {
-            c.PushObject(new StackObject
+        if (frame != null){
+            foreach (FrameElement element in frame)
             {
-                Type = StackObject.StackObjectType.Nil,
-                Id = element.Name,
-                Offset = element.Offset,
-                Length = 8
-            });
+                c.PushObject(new StackObject
+                {
+                    Type = StackObject.StackObjectType.Nil,
+                    Id = element.Name,
+                    Offset = element.Offset,
+                    Length = 8
+                });
+            }
         }
 
         insideFunction = funcName;
@@ -2078,6 +2184,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         {
             c.funcInstrucions.Add(instrucion);
         }
+        
         c.instrucciones = prevInstrucions;
         insideFunction = null;
 
