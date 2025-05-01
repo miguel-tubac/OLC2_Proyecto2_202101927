@@ -1618,7 +1618,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     {
         c.Comment("Return Stament");
         if (context.expr() == null){
-            c.Br(returnLabel);
+            c.B(returnLabel);
             return null;
         }
 
@@ -2158,7 +2158,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
 
         returnLabel = c.GetLabel();
 
-        c.Comment("Function Declaration: "+ funcName);
+        c.Comment("\n\n\n"+"Function Declaration: "+ funcName);
         c.SetLabel(funcName);
         
         //Se recorre el cuerpo de la funcion
