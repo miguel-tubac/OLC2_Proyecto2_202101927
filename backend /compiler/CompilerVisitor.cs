@@ -979,6 +979,8 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         //Aca se obtiene la direccion
         c.Mov(Register.X0, offset);
         c.Add(Register.X0, Register.SP, Register.X0);
+        //Se guarda la direccion donde se encuentra la variable
+        c.MovReg(Register.X2, Register.X0);
 
         if (obj.Type == StackObject.StackObjectType.Float){
             //Aca se consigue hace una copia del valor
@@ -998,14 +1000,10 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.Comment("Se realiza la suma de los dos valores");
                 //Se realiza la suma ya que los valores ya se encuentran en los reguistros x0 y x1
                 c.Add(Register.X0, Register.X0, Register.X1);
+                //Por ultimo se vuelve a guardar el valor en la pila
+                c.Str(Register.X0, Register.X2);
                 //Ahora se vuelve a cargar al stack
                 c.Comment("Pushing resultados de la SUMA(+=)");
-                //Esto es a nievel de arm
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                //Aca se carga a la pila virtual y no necesitamos el valor del id
-                obj.Type = right.Type;
-                c.PushObject(c.CloneObject(obj));
                 //Esto es a nievel de arm
                 c.Push(Register.X0);
                 //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
@@ -1019,13 +1017,9 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.Scvtf(Register.D0, Register.X0);
                 //Se realiza la suma entre valores de tipo float
                 c.Fadd(Register.D0, Register.D0, Register.D1);
+                //Por ultimo se vuelve a guardar el valor en la pila
+                c.Str(Register.D0, Register.X2);
                 c.Comment("Pushing resultados de la SUMA(+=)");
-                //Esto es a nievel de arm
-                c.Push(Register.D0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                //En este caso se clona el left
-                obj.Type = right.Type;
-                c.PushObject(c.CloneObject(obj));
                 //Esto es a nievel de arm
                 c.Push(Register.D0);
                 //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
@@ -1037,13 +1031,9 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.Comment("Se realiza la suma de los dos valores");
                 //Se realiza la suma entre valores de tipo float
                 c.Fadd(Register.D0, Register.D0, Register.D1);
+                //Por ultimo se vuelve a guardar el valor en la pila
+                c.Str(Register.D0, Register.X2);
                 c.Comment("Pushing resultados de la SUMA(+=)");
-                //Esto es a nievel de arm
-                c.Push(Register.D0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                //En este caso se clona el left
-                obj.Type = right.Type;
-                c.PushObject(c.CloneObject(obj));
                 //Esto es a nievel de arm
                 c.Push(Register.D0);
                 //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
@@ -1057,12 +1047,9 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.Scvtf(Register.D1, Register.X1);
                 //Se realiza la suma entre valores de tipo float
                 c.Fadd(Register.D0, Register.D0, Register.D1);
+                //Por ultimo se vuelve a guardar el valor en la pila
+                c.Str(Register.D0, Register.X2);
                 c.Comment("Pushing resultados de la SUMA(+=)");
-                //Esto es a nievel de arm
-                c.Push(Register.D0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                //En este caso se clona el left
-                c.PushObject(c.CloneObject(obj));
                 //Esto es a nievel de arm
                 c.Push(Register.D0);
                 //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
@@ -1072,18 +1059,16 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
             case (StackObject.StackObjectType.String, StackObject.StackObjectType.String):
                 c.Comment("Se realiza la suma de los dos valores");
                 c.Comment("Esto ordena las palabras en el orden correcto");
+                c.MovReg(Register.X4, Register.X2);
                 c.MovReg(Register.X2, Register.X0);
                 c.MovReg(Register.X3, Register.X1);
                 c.MovReg(Register.X0, Register.X3);
                 c.MovReg(Register.X1, Register.X2);
                 //Esto llama a la funcion de concat_strings
                 c.UnirStrings();
+                //Por ultimo se vuelve a guardar el valor en la pila
+                c.Str(Register.X0, Register.X4);
                 c.Comment("Pushing resultados de la SUMA");
-                //El resultado queda en el regusitro x0, por lo tanto se guarda en la pila
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                //En este caso se clona el left
-                c.PushObject(c.CloneObject(obj));
                 //El resultado queda en el regusitro x0, por lo tanto se guarda en la pila
                 c.Push(Register.X0);
                 //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
@@ -1114,6 +1099,8 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         //Aca se obtiene la direccion
         c.Mov(Register.X0, offset);
         c.Add(Register.X0, Register.SP, Register.X0);
+        //Se guarda la direccion donde se encuentra la variable
+        c.MovReg(Register.X2, Register.X0);
 
         if (obj.Type == StackObject.StackObjectType.Float){
             //Aca se consigue hace una copia del valor
@@ -1133,14 +1120,10 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.Comment("Se realiza la Resta de los dos valores");
                 //Se realiza la suma ya que los valores ya se encuentran en los reguistros x0 y x1
                 c.Sub(Register.X0, Register.X0, Register.X1);
+                //Por ultimo se vuelve a guardar el valor en la pila
+                c.Str(Register.X0, Register.X2);
                 //Ahora se vuelve a cargar al stack
                 c.Comment("Pushing resultados de la RESTA(-=)");
-                //Esto es a nievel de arm
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                //Aca se carga a la pila virtual y no necesitamos el valor del id
-                obj.Type = right.Type;
-                c.PushObject(c.CloneObject(obj));
                 //Esto es a nievel de arm
                 c.Push(Register.X0);
                 //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
@@ -1154,13 +1137,9 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.Scvtf(Register.D0, Register.X0);
                 //Se realiza la suma entre valores de tipo float
                 c.Fsub(Register.D0, Register.D0, Register.D1);
+                //Por ultimo se vuelve a guardar el valor en la pila
+                c.Str(Register.D0, Register.X2);
                 c.Comment("Pushing resultados de la RESTA(-=)");
-                //Esto es a nievel de arm
-                c.Push(Register.D0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                //En este caso se clona el left
-                obj.Type = right.Type;
-                c.PushObject(c.CloneObject(obj));
                 //Esto es a nievel de arm
                 c.Push(Register.D0);
                 //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
@@ -1172,13 +1151,9 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.Comment("Se realiza la Resta de los dos valores");
                 //Se realiza la suma entre valores de tipo float
                 c.Fsub(Register.D0, Register.D0, Register.D1);
+                //Por ultimo se vuelve a guardar el valor en la pila
+                c.Str(Register.D0, Register.X2);
                 c.Comment("Pushing resultados de la RESTA(-=)");
-                //Esto es a nievel de arm
-                c.Push(Register.D0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                //En este caso se clona el left
-                obj.Type = right.Type;
-                c.PushObject(c.CloneObject(obj));
                 //Esto es a nievel de arm
                 c.Push(Register.D0);
                 //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
@@ -1192,12 +1167,9 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.Scvtf(Register.D1, Register.X1);
                 //Se realiza la suma entre valores de tipo float
                 c.Fsub(Register.D0, Register.D0, Register.D1);
+                //Por ultimo se vuelve a guardar el valor en la pila
+                c.Str(Register.D0, Register.X2);
                 c.Comment("Pushing resultados de la RESTA(-=)");
-                //Esto es a nievel de arm
-                c.Push(Register.D0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                //En este caso se clona el left
-                c.PushObject(c.CloneObject(obj));
                 //Esto es a nievel de arm
                 c.Push(Register.D0);
                 //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
@@ -1815,6 +1787,8 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         //Aca se obtiene la direccion
         c.Mov(Register.X0, offset);
         c.Add(Register.X0, Register.SP, Register.X0);
+        //Se guarda la direccion donde se encuentra la variable
+        c.MovReg(Register.X2, Register.X0);
 
         if (obj.Type == StackObject.StackObjectType.Float){
             //Aca se consigue hace una copia del valor
@@ -1834,17 +1808,16 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.Mov(Register.X1, 1);
                 //Se realiza la suma ya que los valores ya se encuentran en los reguistros x0 y x1
                 c.Sub(Register.X0, Register.X0, Register.X1);
+                //Por ultimo se vuelve a guardar el valor en la pila
+                c.Str(Register.X0, Register.X2);
                 //Ahora se vuelve a cargar al stack
                 c.Comment("Pushing resultados de (--)");
                 //Esto es a nievel de arm
                 c.Push(Register.X0);
                 //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                //Aca se carga a la pila virtual y no necesitamos el valor del id
-                c.PushObject(c.CloneObject(obj));
-                //Esto es a nievel de arm
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                c.PushObject(c.CloneObject(obj));
+                var newObject2 = c.CloneObject(obj);
+                newObject2.Id = null;
+                c.PushObject(newObject2);
                 break;
             case StackObject.StackObjectType.Float:
                 c.Comment("Se decrementa de uno la varible: "+id);
@@ -1854,15 +1827,15 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.Scvtf(Register.D1, Register.X1);
                 //Se realiza la suma entre valores de tipo float
                 c.Fsub(Register.D0, Register.D0, Register.D1);
+                //Por ultimo se vuelve a guardar el valor en la pila
+                c.Str(Register.D0, Register.X2);
                 c.Comment("Pushing resultados de (--)");
                 //Esto es a nievel de arm
                 c.Push(Register.D0);
                 //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                c.PushObject(c.CloneObject(obj));
-                //Esto es a nievel de arm
-                c.Push(Register.D0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                c.PushObject(c.CloneObject(obj));
+                var newObject = c.CloneObject(obj);
+                newObject.Id = null;
+                c.PushObject(newObject);
                 break;
         }
 
