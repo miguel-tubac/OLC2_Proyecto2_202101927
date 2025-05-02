@@ -73,6 +73,7 @@ func main() {
 		fmt.Println("X Funciones no recursivas sin parámetros: incorrecto");
 	}
 
+	fmt.Println("-------->Funciones no recursivas sin parámetros (5 punto):", puntosFuncionesSimples);
 	// 2. Funciones no recursivas con parámetros (5 puntos)
 	fmt.Println("\n==== Funciones no recursivas con parámetros ====");
 	puntosFuncionesParametros := 0;
@@ -92,6 +93,7 @@ func main() {
 		fmt.Println("X Función con parámetros y retorno: incorrecto");
 	}
 
+	fmt.Println("-------->Funciones no recursivas con parámetros (5 puntos):",puntosFuncionesParametros);
 	// 3. Funciones recursivas (10 puntos)
 	fmt.Println("\n==== Funciones recursivas ====");
 	puntosFuncionesRecursivas := 0;
@@ -100,28 +102,34 @@ func main() {
 	resultadoFactorial := factorial(5);
 	fmt.Println("Factorial de 5:", resultadoFactorial);
 
+	puntosFuncionesRecursivas = 0;
 	if resultadoFactorial == 120 {
 		puntosFuncionesRecursivas = puntosFuncionesRecursivas + 3;
 		fmt.Println("OK Función factorial: correcto");
 	} else {
 		fmt.Println("X Función factorial: incorrecto");
 	}
+	fmt.Println("-------->Funciones recursivas (3 puntos)/10:",puntosFuncionesRecursivas);
 
 	fmt.Println("\nTorres de Hanoi:");
 	fmt.Println("\n\n###Validacion Manual");
 	hanoi(3, "A", "B", "C");
+	puntosFuncionesRecursivas = 0;
 	puntosFuncionesRecursivas = puntosFuncionesRecursivas + 3;
+	fmt.Println("-------->Funciones recursivas (3 puntos)/10:",puntosFuncionesRecursivas);
 
 	fmt.Println("\nAckermann:");
 	resultadoAckermann := ackermann(3, 2);
 	fmt.Println("Ackermann de (3, 2):", resultadoAckermann);
-
+	
+	puntosFuncionesRecursivas = 0;
 	if resultadoAckermann == 29 {
 		puntosFuncionesRecursivas = puntosFuncionesRecursivas + 4;
 		fmt.Println("OK Función ackermann: correcto");
 	} else {
 		fmt.Println("X Función ackermann: incorrecto");
 	}
+	fmt.Println("-------->Funciones recursivas (4 puntos)/10:",puntosFuncionesRecursivas);
 
 	// 4. strconv.Atoi (2 punto)
 	puntosAtoi := 0;
