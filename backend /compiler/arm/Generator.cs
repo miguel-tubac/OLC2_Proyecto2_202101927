@@ -22,7 +22,7 @@ public class ArmGenerator
     public List<string> funcInstrucions = new List<string>();
     private readonly StandardLibrary stdLib = new StandardLibrary();
     private List<StackObject> stack = new List<StackObject>();
-    private int depth = 0;
+    public int depth = 0;
 
     //private readonly List<string> slices = new List<string>();
 
@@ -111,6 +111,7 @@ public class ArmGenerator
 
     public StackObject PopObject(string rd)
     {
+        Comment("Popping object from stack: PopObject()");
         var obj = stack.Last();
         stack.RemoveAt(stack.Count -1);
 
@@ -128,12 +129,10 @@ public class ArmGenerator
 
     public StackObject PopObject2(string rd)
     {
+        Comment("Popping object from stack: PopObject2()");
         var obj = stack.Last();
         stack.RemoveAt(stack.Count -1);
-
-        
         Pop(rd);
-        
         //Retorno el objeto por si se desea usar
         return obj;
     }
@@ -142,7 +141,7 @@ public class ArmGenerator
     //Esto es para las funciones
     public void PopObject3()
     {
-        Comment("Popping object from stack");
+        Comment("Popping object from stack: PopObject3()");
         try{
             stack.RemoveAt(stack.Count - 1);
         }
@@ -265,7 +264,8 @@ public class ArmGenerator
             Type = obj.Type,
             Length = obj.Length,
             Depth = obj.Depth,
-            Id = obj.Id
+            Id = obj.Id,
+            Offset = obj.Offset
         }; 
     }
 
@@ -774,7 +774,7 @@ public class ArmGenerator
         }
 
         //Esto agrega las funciones
-        sb.AppendLine("\n\n\n // Funciones Foraneas");
+        sb.AppendLine("\n\n\n// Funciones Foraneas");
         funcInstrucions.ForEach(i => sb.AppendLine(i));
 
         //Esto es para agregar la conversion de int a string

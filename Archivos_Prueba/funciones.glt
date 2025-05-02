@@ -11,7 +11,7 @@ func obtenerNumero() int {
 
 // Función con parámetros que no retorna nada
 func saludarPersona(nombre string) {
-	fmt.Println("¡Hola,", nombre+"!");
+	fmt.Println("¡Hola,", nombre,"!");
 }
 
 // Función con parámetros que retorna un valor

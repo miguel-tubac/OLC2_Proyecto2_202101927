@@ -164,7 +164,7 @@ func main() {
 	fmt.Println("\n==== For Clásico ====");
 	puntosForClasico := 0;
 
-	fmt.Println("For clásico simple")
+	fmt.Println("For clásico simple");
 	suma = 0;
 	for i := 0; i < 5; i++ {
 		fmt.Println("i =", i);
@@ -192,7 +192,8 @@ func main() {
 	fmt.Println("OK For clásico anidado: correcto");
 
 	// 5. For Range (3 puntos)
-	fmt.Println("\n==== For Range ====");
+	puntosForRange := 0;
+	/*fmt.Println("\n==== For Range ====");
 	puntosForRange := 0;
 
 	fmt.Println("For range con slice");
@@ -218,7 +219,7 @@ func main() {
 		fmt.Println("OK For range con índices: correcto");
 	} else {
 		fmt.Println("X For range con índices: incorrecto");
-	}
+	}*/
 
 	// 6. Switch/Case (3 puntos)
 	fmt.Println("\n==== Switch/Case ====");

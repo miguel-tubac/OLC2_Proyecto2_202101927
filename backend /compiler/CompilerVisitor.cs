@@ -63,6 +63,8 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
             c.Add(Register.SP, Register.SP, Register.X0);
         }
 
+        c.Comment("Regresando del Bloque de nuevo entorno");
+
         return null;
     }
 
@@ -161,6 +163,22 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
 
          //Aca se valida que el valor este en la pila
         Visit(context.expr());
+        if (insideFunction != null)
+        {
+            var localObject = c.GetFrameLocal(framePointerOffset);
+            var valueObject = c.PopObject(Register.X0);
+
+            c.Mov(Register.X1, framePointerOffset * 8); // FIXME:  <-----Esto puede fallar
+            //c.Mov(Register.X1, localObject.Offset * 8);
+            c.Sub(Register.X1, Register.FP, Register.X1);
+            //Aca carga el valor en la direccion
+            c.Str(Register.X0, Register.X1);
+
+            localObject.Type = valueObject.Type;
+            framePointerOffset++;
+
+            return null;
+        }
         //Aca se asocia el valor al nombre en el stack virtual
         c.TagObject(id);
         
@@ -211,8 +229,8 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     {
         //Aca unicamente se deve de dejar la pila basillas
         Visit(context.expr());
-        c.Comment("Popping descartando el valor");
-        c.PopObject(Register.X0);
+        //c.Comment("Popping descartando el valor");
+        //c.PopObject(Register.X0);
         return null;
     }
 
@@ -458,11 +476,15 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         //Visitamos el lado izquierdo
         // 1+2
         //TOP --> []
+        c.Comment("Obtine el primer valor");
         Visit(context.expr(0)); //Visit 1: TOP --> [1]
+        c.Comment("Obtine el segundo valor");
         Visit(context.expr(1)); //Visit 2: TOP --> [2, 1]
 
         //Se obtinen los valores de la pila
+        c.Comment("Obtine el primer valor de la pila");
         var left = c.PopObject(Register.X0);
+        c.Comment("Obtine el segundo valor de la pila");
         var right = c.PopObject(Register.X1);
 
         //Aca se manejan los tipos
@@ -470,6 +492,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         {
             //Esta es la parte de la suma:
             case (StackObject.StackObjectType.Int, "+", StackObject.StackObjectType.Int):
+                c.Comment("Se realiza la suma");
                 //Se realiza la suma ya que los valores ya se encuentran en los reguistros x0 y x1
                 c.Add(Register.X0, Register.X1, Register.X0);
                 //Ahora se vuelve a cargar al stack
@@ -788,8 +811,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         //Esto es a nievel de arm
         c.Push(Register.X0);
         //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-        var objec = c.CloneObject(left);
-        objec.Type = StackObject.StackObjectType.Bool;
+        var objec = c.BoolObject();
         c.PushObject(objec);
 
         return null;
@@ -1197,6 +1219,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     //Solo se visita la producion
     public override Object VisitSoloPasar(LanguageParser.SoloPasarContext context)
     {
+        Visit(context.asignacion());
         return null;
     }
 
@@ -1536,6 +1559,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
 
 
     //VisitForStmt 'for' forInit expr ';' expr stmt 
+    //forInit: declararvar | expr ';'
     public override Object VisitForStmt(LanguageParser.ForStmtContext context)
     {
         //Se generan las etoquetas
@@ -1714,9 +1738,11 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         if (obj.Type == StackObject.StackObjectType.Float){
             //Aca se consigue hace una copia del valor
             c.Ldr(Register.D0, Register.X0);
+            //c.Push(Register.D0);
         }else{
             //Aca se consigue hace una copia del valor
             c.Ldr(Register.X0, Register.X0);
+            //c.Push(Register.X0);
         }
 
         //Aca se manejan los tipos
@@ -1733,13 +1759,10 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.Comment("Pushing resultados de (++)");
                 //Esto es a nievel de arm
                 c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
                 //Aca se carga a la pila virtual y no necesitamos el valor del id
-                c.PushObject(c.CloneObject(obj));
-                //Esto es a nievel de arm
-                c.Push(Register.X0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                c.PushObject(c.CloneObject(obj));
+                var newObject = c.CloneObject(obj);
+                newObject.Id = null;
+                c.PushObject(newObject);
                 break;
             case StackObject.StackObjectType.Float:
                 c.Comment("Se realiza la suma de uno la varible: "+id);
@@ -1912,7 +1935,9 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         c.Ldr(Register.FP, Register.X1);
 
         //5. Regresa el SP al contexto de ejecucion anterior
+        System.Console.WriteLine("Valor del FrameSize: "+ frameSize);
         c.Mov(Register.X0, stackElementSize * frameSize);
+        //c.Mov(Register.X0, stackElementSize * returnOffset);
         c.Add(Register.SP, Register.SP, Register.X0);
 
         //6. Regresa el valor del retorno
@@ -2158,7 +2183,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
 
         returnLabel = c.GetLabel();
 
-        c.Comment("\n\n\n"+"Function Declaration: "+ funcName);
+        c.Comment("Function Declaration: "+ funcName);
         c.SetLabel(funcName);
         
         //Se recorre el cuerpo de la funcion
@@ -2175,6 +2200,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         c.Br(Register.LR);
 
         c.Comment("End of Function: "+ funcName);
+        c.Comment("\n\n\n");
 
         //Se limpia el stack
         for (int j = 0; j < paramsOffset + localOffset; j++)
