@@ -111,6 +111,12 @@ public class ArmGenerator
 
     public StackObject PopObject(string rd)
     {
+        Comment("Stack: PopObject(string rd)");
+        Comment("Cantidad de elementos: "+stack.Count);
+        foreach (var obj2 in stack){
+            Comment($"[{obj2.Type}, {obj2.Depth}, {obj2.Id}]");
+        }
+
         Comment("Popping object from stack: PopObject()");
         var obj = stack.Last();
         stack.RemoveAt(stack.Count -1);
@@ -129,6 +135,12 @@ public class ArmGenerator
 
     public StackObject PopObject2(string rd)
     {
+        Comment("Stack: PopObject2(string rd)");
+        Comment("Cantidad de elementos: "+stack.Count);
+        foreach (var obj2 in stack){
+            Comment($"[{obj2.Type}, {obj2.Depth}, {obj2.Id}]");
+        }
+
         Comment("Popping object from stack: PopObject2()");
         var obj = stack.Last();
         stack.RemoveAt(stack.Count -1);
@@ -141,6 +153,12 @@ public class ArmGenerator
     //Esto es para las funciones
     public void PopObject3()
     {
+        Comment("Stack: PopObject3(string rd)");
+        Comment("Cantidad de elementos: "+stack.Count);
+        foreach (var obj2 in stack){
+            Comment($"[{obj2.Type}, {obj2.Depth}, {obj2.Id}]");
+        }
+
         Comment("Popping object from stack: PopObject3()");
         try{
             stack.RemoveAt(stack.Count - 1);
@@ -275,9 +293,20 @@ public class ArmGenerator
         depth++;
     }
 
+    public void RemoveScope()
+    {
+        depth--;
+    }
+
     //Este es para finalizar un entorno
     public int endScope()
     {
+        Comment("Stack: endScope()");
+        Comment("Cantidad de elementos: "+stack.Count);
+        foreach (var obj in stack){
+            Comment($"[{obj.Type}, {obj.Depth}, {obj.Id}]");
+        }
+
         int byteOffset = 0;
         for(int i = stack.Count-1; i>= 0; i--)
         {

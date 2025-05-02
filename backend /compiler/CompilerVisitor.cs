@@ -229,8 +229,8 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     {
         //Aca unicamente se deve de dejar la pila basillas
         Visit(context.expr());
-        //c.Comment("Popping descartando el valor");
-        //c.PopObject(Register.X0);
+        c.Comment("Popping descartando el valor");
+        c.PopObject(Register.X0);
         return null;
     }
 
@@ -1213,6 +1213,8 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     public override Object VisitAsigna(LanguageParser.AsignaContext context){
         //Solo devo de evaluar la asignacion
         Visit(context.asignacion());
+        c.Comment("Popping descartando el valor");
+        c.PopObject(Register.X0);
         return null;
     }
 
@@ -1220,6 +1222,8 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     public override Object VisitSoloPasar(LanguageParser.SoloPasarContext context)
     {
         Visit(context.asignacion());
+        c.Comment("Popping descartando el valor");
+        c.PopObject(Register.X0);
         return null;
     }
 
@@ -1572,9 +1576,11 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         var prevBreakLabel = breakLabel;
         continueLabel = incrementLabel;
         breakLabel = endLabel;
-
+        
         //Aca empiza el cuerpo del for
         c.Comment("For - Stament");
+        // c.Comment("Saving SP at start of for scope");
+        // c.MovReg(Register.X9, Register.SP); // X9 guarda SP inicial
         //Se genera un nuevo entorno
         c.NewScope();
 
@@ -1594,10 +1600,14 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         c.SetLabel(incrementLabel);
         //Esto es el incremento o la condicion del for
         Visit(context.expr(1));
+        //Se pushea a la pila virtual
         //Volvemos a iniciar el bucle
         c.B(startLabel);
         //Por si necesitamos salir se agrega la etiqueta de salida
         c.SetLabel(endLabel);
+        // c.Comment("Restoring SP to start of for scope");
+        // c.MovReg(Register.SP, Register.X9);
+
 
         c.Comment("Fin del Bulce - For");
 
@@ -1734,6 +1744,8 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         //Aca se obtiene la direccion
         c.Mov(Register.X0, offset);
         c.Add(Register.X0, Register.SP, Register.X0);
+        //Se guarda la direccion donde se encuentra la variable
+        c.MovReg(Register.X2, Register.X0);
 
         if (obj.Type == StackObject.StackObjectType.Float){
             //Aca se consigue hace una copia del valor
@@ -1755,6 +1767,8 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.Mov(Register.X1, 1);
                 //Se realiza la suma ya que los valores ya se encuentran en los reguistros x0 y x1
                 c.Add(Register.X0, Register.X0, Register.X1);
+                //Por ultimo se vuelve a guardar el valor en la pila
+                c.Str(Register.X0, Register.X2);
                 //Ahora se vuelve a cargar al stack
                 c.Comment("Pushing resultados de (++)");
                 //Esto es a nievel de arm
@@ -1772,15 +1786,15 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
                 c.Scvtf(Register.D1, Register.X1);
                 //Se realiza la suma entre valores de tipo float
                 c.Fadd(Register.D0, Register.D0, Register.D1);
+                //Por ultimo se vuelve a guardar el valor en la pila
+                c.Str(Register.D0, Register.X2);
                 c.Comment("Pushing resultados de (++)");
                 //Esto es a nievel de arm
                 c.Push(Register.D0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                c.PushObject(c.CloneObject(obj));
-                //Esto es a nievel de arm
-                c.Push(Register.D0);
-                //Esto es a nivel virtual, y se clona el objeto y se tiene que clonar el objeto que tiene predominacia en el tipo
-                c.PushObject(c.CloneObject(obj));
+                //Aca se carga a la pila virtual y no necesitamos el valor del id
+                var newObject2 = c.CloneObject(obj);
+                newObject2.Id = null;
+                c.PushObject(newObject2);
                 break;
         }
 
