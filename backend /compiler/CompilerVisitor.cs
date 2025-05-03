@@ -2015,13 +2015,41 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
 
 
     //VisitFuncTypeOf       'reflect.TypeOf' '('expr')'               # FuncTypeOf
-    /*
-        string id = context.ID().GetText();
-        return currentEnvironment.GetVariable(id, context.Start);
-        retorna ValueWraper   []int
-    */
     public override Object VisitFuncTypeOf(LanguageParser.FuncTypeOfContext context)
     {
+        //System.Console.WriteLine("llego aqui");
+        c.Comment("Funcion embedida: reflect.TypeOf");
+        //Visitamos la exprecion
+        Visit(context.expr());
+
+        //Obtenemos el objeto de la pila
+        var obj = c.PopObject(Register.X0);
+
+        string tipo = "";
+        switch (obj.Type){
+            case StackObject.StackObjectType.Int:
+                tipo = "int";
+                break;
+            case StackObject.StackObjectType.Float:
+                tipo = "float64";
+                break;
+            case StackObject.StackObjectType.Bool:
+                tipo = "bool";
+                break;
+            case StackObject.StackObjectType.String:
+                tipo = "string";
+                break;
+            case StackObject.StackObjectType.Rune:
+                tipo = "rune";
+                break;
+        }
+
+        //Se generar un objeto de tipo string
+        var stringObject = c.StringObject();
+        //Se asocia el obejto con el strong
+        c.PushConstant(stringObject, tipo);
+        c.PushConstant(stringObject, tipo);
+
         return null;
     }
 

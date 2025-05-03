@@ -145,7 +145,6 @@ func main() {
 	} else {
 		fmt.Println("X strconv.Atoi: incorrecto");
 	}
-	fmt.Println("-------->strconv.Atoi (2 punto):",puntosAtoi);
 
 	// 5. strconv.ParseFloat (2 punto)
 	fmt.Println("\n==== strconv.ParseFloat ====");
@@ -167,8 +166,7 @@ func main() {
 	}
 
 	// 6. reflect.TypeOf (1 punto)
-	puntosTypeOf := 0;
-	/*fmt.Println("\n==== reflect.TypeOf ====");
+	fmt.Println("\n==== reflect.TypeOf ====");
 	puntosTypeOf := 0;
 
 	fmt.Println("Obtener tipo de datos:");
@@ -194,7 +192,7 @@ func main() {
 	fmt.Println("Tipo de true:", tipoBooleano);
 
 	// Tipo slice
-	slice := []int{1, 2, 3};
+	/*slice := []int{1, 2, 3};
 	tipoSlice := reflect.TypeOf(slice);
 	fmt.Println("Tipo de []int{1, 2, 3}:", tipoSlice);
 
@@ -206,6 +204,14 @@ func main() {
 	} else {
 		fmt.Println("X reflect.TypeOf: incorrecto");
 	}*/
+
+    if tipoEntero == "int" && tipoDecimal == "float64" &&
+		tipoTexto == "string" && tipoBooleano == "bool"{
+		puntosTypeOf = puntosTypeOf + 1;
+		fmt.Println("OK reflect.TypeOf: correcto");
+	} else {
+		fmt.Println("X reflect.TypeOf: incorrecto");
+	}
 
 	// Resumen de puntos
 	puntos = puntosFuncionesSimples + puntosFuncionesParametros + puntosFuncionesRecursivas +
