@@ -132,8 +132,7 @@ func main() {
 	fmt.Println("-------->Funciones recursivas (4 puntos)/10:",puntosFuncionesRecursivas);
 
 	// 4. strconv.Atoi (2 punto)
-	puntosAtoi := 0;
-	/*fmt.Println("\n==== strconv.Atoi ====");
+	fmt.Println("\n==== strconv.Atoi ====");
 	puntosAtoi := 0;
 
 	fmt.Println("Conversión de string a int:");
@@ -145,11 +144,11 @@ func main() {
 		fmt.Println("OK strconv.Atoi: correcto");
 	} else {
 		fmt.Println("X strconv.Atoi: incorrecto");
-	}*/
+	}
+	fmt.Println("-------->strconv.Atoi (2 punto):",puntosAtoi);
 
 	// 5. strconv.ParseFloat (2 punto)
-	puntosParseFloat := 0;
-	/*fmt.Println("\n==== strconv.ParseFloat ====");
+	fmt.Println("\n==== strconv.ParseFloat ====");
 	puntosParseFloat := 0;
 
 	fmt.Println("Conversión de string a float64:");
@@ -165,7 +164,7 @@ func main() {
 		fmt.Println("OK strconv.ParseFloat: correcto");
 	} else {
 		fmt.Println("X strconv.ParseFloat: incorrecto");
-	}*/
+	}
 
 	// 6. reflect.TypeOf (1 punto)
 	puntosTypeOf := 0;

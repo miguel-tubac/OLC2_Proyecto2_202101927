@@ -720,6 +720,18 @@ public class ArmGenerator
         stdLib.Use("comparar_menorIgual_rune");
         instrucciones.Add($"BL comparar_menorIgual_rune");
     }
+
+    public void StrconvAtoi()
+    {
+        stdLib.Use("atoi");
+        instrucciones.Add($"BL atoi");
+    }
+
+    public void StrconvParseFloat()
+    {
+        stdLib.Use("atof");
+        instrucciones.Add($"BL atof");
+    }
     //---------------------------------Fin de las operaciones
 
     public void And(string rd, string rd1, string rd2)
@@ -770,7 +782,9 @@ public class ArmGenerator
         sb.AppendLine("//Esto lo voy a usar para Float");
         sb.AppendLine("zero:           .double 0.0");
         sb.AppendLine("ten:            .double 10.0");
+        sb.AppendLine("one:            .double 1.0");
         sb.AppendLine("neg_one:        .double -1.0");
+        sb.AppendLine("hundred:        .double 100.0");
         sb.AppendLine("//Esta es para imprimir dobles");
         sb.AppendLine("point:      .byte '.'");
         sb.AppendLine("round_const:    .double 0.0000005 ");

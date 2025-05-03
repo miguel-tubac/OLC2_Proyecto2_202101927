@@ -1034,6 +1034,127 @@ x1_menorIgual_rune:
     b fin_menorIgual_rune
 fin_menorIgual_rune:
     ret
+    "},
+
+    {"atoi", @"
+// x0 = dirección del string
+// Devuelve: x0 = valor numérico
+atoi:
+    MOV     x1, #0          // acumulador del número (x1 = 0)
+    MOV     x2, #0          // registro temporal para el carácter
+
+atoi_loop:
+    LDRB    w2, [x0], #1    // cargar siguiente byte (carácter), avanzar puntero
+    CMP     w2, #'0'        // si carácter < '0'
+    BLT     atoi_end        // salir si no es dígito
+    CMP     w2, #'9'        // si carácter > '9'
+    BGT     atoi_end        // salir si no es dígito
+
+    // convertir carácter ASCII a valor numérico
+    SUB     w2, w2, #'0'    // w2 = valor numérico (0-9)
+
+    // multiplicar acumulador por 10 y sumar nuevo dígito
+    MOV     x3, #10
+    MUL     x1, x1, x3
+    ADD     x1, x1, x2
+
+    B       atoi_loop       // repetir
+
+atoi_end:
+    MOV     x0, x1          // devolver resultado en x0
+    RET
+    
+    "},
+
+    {"atof", @"
+// x0: puntero a cadena
+// d0: valor float devuelto
+atof:
+    mov x1, x0
+    stp x29, x30, [sp, #-16]!
+    mov x29, sp
+    
+    // Cargar zero a d0
+    adrp x8, zero
+    add x8, x8, :lo12:zero
+    ldr d0, [x8]
+    
+    // Cargar one a d2
+    adrp x8, one
+    add x8, x8, :lo12:one
+    ldr d2, [x8]
+    
+    mov w2, #0                  // Modo decimal
+    mov w4, #0                  // Signo
+    
+    // Verificar signo negativo
+    ldrb w3, [x1]
+    cmp w3, #'-'
+    bne loop_convert
+    mov w4, #1
+    add x1, x1, #1
+
+loop_convert:
+    ldrb w3, [x1], #1
+    cmp w3, #0
+    beq end_convert
+    
+    cmp w3, #'.'
+    bne not_decimal_point
+    mov w2, #1
+    b loop_convert
+
+not_decimal_point:
+    cmp w3, #'0'
+    blt loop_convert
+    cmp w3, #'9'
+    bgt loop_convert
+    
+    sub w3, w3, #'0'
+    scvtf d3, w3
+    
+    cmp w2, #0
+    beq process_integer
+    
+    // Parte decimal
+    adrp x8, ten
+    add x8, x8, :lo12:ten
+    ldr d4, [x8]
+    fmul d2, d2, d4
+    fdiv d3, d3, d2
+    fadd d0, d0, d3
+    b loop_convert
+
+process_integer:
+    adrp x8, ten
+    add x8, x8, :lo12:ten
+    ldr d4, [x8]
+    fmul d0, d0, d4
+    fadd d0, d0, d3
+    b loop_convert
+
+end_convert:
+    cmp w4, #1
+    bne done_convert
+    adrp x8, neg_one
+    add x8, x8, :lo12:neg_one
+    ldr d1, [x8]
+    fmul d0, d0, d1
+
+done_convert:
+    // Truncar a 2 decimales
+    adrp x8, hundred
+    add x8, x8, :lo12:hundred
+    ldr d5, [x8]
+    fmul d0, d0, d5
+    frintm d0, d0
+    fdiv d0, d0, d5
+
+    ldp x29, x30, [sp], #16
+    ret
+
+
+
     "}
 
 

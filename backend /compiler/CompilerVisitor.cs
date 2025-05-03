@@ -161,6 +161,7 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         string id = context.ID().GetText(); //Obtenemos el id
         c.Comment("Variable declaracion Explixita: "+id);
 
+        //System.Console.WriteLine("ingreso a VisitSegundaDecl");
          //Aca se valida que el valor este en la pila
         Visit(context.expr());
         if (insideFunction != null)
@@ -181,6 +182,8 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         }
         //Aca se asocia el valor al nombre en el stack virtual
         c.TagObject(id);
+
+        //System.Console.WriteLine("Salio de VisitSegundaDecl");
         
         return null;
     }
@@ -1184,9 +1187,11 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     //VisitAsigna
     public override Object VisitAsigna(LanguageParser.AsignaContext context){
         //Solo devo de evaluar la asignacion
+        // System.Console.WriteLine("ENtro al VisitAsigna");
         Visit(context.asignacion());
         c.Comment("Popping descartando el valor");
         c.PopObject(Register.X0);
+        // System.Console.WriteLine("salio del VisitAsigna");
         return null;
     }
 
@@ -1869,7 +1874,6 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
         c.Sub(Register.SP, Register.SP, Register.X0);
 
         //2. | RA | FP | ......posiciones |
-        //TODO: min 53
         if (callContext.args() != null)
         {
             c.Comment("Visitando parametros de la funcion");
@@ -1946,6 +1950,32 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     //VisitFuncAtoi      'strconv.Atoi' '('expr')'                 # FuncAtoi
     public override Object VisitFuncAtoi(LanguageParser.FuncAtoiContext context)
     {
+        //System.Console.WriteLine("llego aqui");
+        c.Comment("Funcion embedida: strconv.Atoi");
+        //Visitamos la exprecion
+        Visit(context.expr());
+
+        //Obtenemos el objeto de la pila
+        c.PopObject(Register.X0);
+
+        //Se llama a la funcion para convertir la cadena a numero
+        c.StrconvAtoi();
+
+        //Aca se genera un valor por defecto
+        var intObject = c.IntObject();
+
+        //Se guarda el valor que retorno la funcion de x0
+        c.Push(Register.X0);
+
+        //Aca se pushe a la pila virtual y tambien a la de arm
+        c.PushObject(intObject);
+        //System.Console.WriteLine("salio de StrconvAtoi()");
+        //TODO: aca se carga dos veces si no queda basillo la pila
+        //Se guarda el valor que retorno la funcion de x0
+        c.Push(Register.X0);
+
+        //Aca se pushe a la pila virtual y tambien a la de arm
+        c.PushObject(intObject);
         return null;
     }
 
@@ -1953,6 +1983,33 @@ public class CompilerVisitor : LanguageBaseVisitor<Object?> //Esto quiere decir 
     //VisitFuncParFloat     'strconv.ParseFloat' '('expr')'           # FuncParFloat
     public override Object VisitFuncParFloat(LanguageParser.FuncParFloatContext context)
     {
+        //System.Console.WriteLine("llego aqui");
+        c.Comment("Funcion embedida: strconv.ParseFloat");
+        //Visitamos la exprecion
+        Visit(context.expr());
+
+        //Obtenemos el objeto de la pila
+        c.PopObject(Register.X0);
+
+        //Se llama a la funcion para convertir la cadena a numero
+        c.StrconvParseFloat();
+
+        //Aca se genera un valor por defecto
+        var floatObject = c.FloatObject();
+
+        //Se guarda el valor que retorno la funcion de x0
+        c.Push(Register.D0);
+
+        //Aca se pushe a la pila virtual y tambien a la de arm
+        c.PushObject(floatObject);
+        //System.Console.WriteLine("salio de StrconvAtoi()");
+        //TODO: aca se carga dos veces si no queda basillo la pila
+        //Se guarda el valor que retorno la funcion de x0
+        c.Push(Register.D0);
+
+        //Aca se pushe a la pila virtual y tambien a la de arm
+        c.PushObject(floatObject);
+
         return null;
     }
 
